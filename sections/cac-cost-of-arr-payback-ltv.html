@@ -1,0 +1,407 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CAC, Cost of ARR, Payback and LTV:CAC — a study package</title><style>
+*{box-sizing:border-box}
+:root{
+  --surface-1:#fcfcfb; --surface-2:#f4f3f0; --surface-3:#eceae5;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7873;
+  --rule:#e2e0da; --grid:#e8e6e1; --axis:#c9c6bf;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --warn-bg:#fdf6e8; --warn-br:#eda100;
+  --good-bg:#eaf6f0; --good-br:#1baf7a;
+  --bad-bg:#fdeeee; --bad-br:#e34948;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){
+  --surface-1:#1a1a19; --surface-2:#222221; --surface-3:#2b2b29;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#94938a;
+  --rule:#35352f; --grid:#2e2e2b; --axis:#4a4a45;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --warn-bg:#2a2415; --warn-br:#c98500;
+  --good-bg:#15241d; --good-br:#199e70;
+  --bad-bg:#2b1717; --bad-br:#e66767;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --surface-1:#1a1a19; --surface-2:#222221; --surface-3:#2b2b29;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#94938a;
+  --rule:#35352f; --grid:#2e2e2b; --axis:#4a4a45;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --warn-bg:#2a2415; --warn-br:#c98500;
+  --good-bg:#15241d; --good-br:#199e70;
+  --bad-bg:#2b1717; --bad-br:#e66767;
+  color-scheme:dark;
+}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--surface-2);color:var(--text-primary);
+  font:16px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  font-variant-numeric:tabular-nums lining-nums;}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px 96px}
+header.top{background:var(--surface-1);border-bottom:1px solid var(--rule);padding:56px 0 40px;margin-bottom:8px}
+header.top .wrap{padding-bottom:0}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin:0 0 14px}
+h1{font-size:40px;line-height:1.12;letter-spacing:-.022em;margin:0 0 16px;font-weight:680}
+.lede{font-size:19px;line-height:1.6;color:var(--text-secondary);margin:0;max-width:70ch}
+h2{font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:650;
+   margin:64px 0 8px;padding-top:28px;border-top:1px solid var(--rule)}
+h3{font-size:27px;line-height:1.22;letter-spacing:-.016em;margin:0 0 18px;font-weight:660}
+h4{font-size:16px;margin:32px 0 10px;font-weight:660;letter-spacing:-.005em}
+p{margin:0 0 16px;max-width:74ch}
+a{color:var(--s1)}
+.mut{color:var(--text-muted)} .sm{font-size:13px} .sec{color:var(--text-secondary)}
+strong{font-weight:660}
+.card{background:var(--surface-1);border:1px solid var(--rule);border-radius:14px;padding:26px 28px;margin:22px 0}
+.flush{padding:26px 8px 20px}
+.card.flush,.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.card.flush::-webkit-scrollbar,.scroll::-webkit-scrollbar{height:8px}
+.card.flush::-webkit-scrollbar-thumb,.scroll::-webkit-scrollbar-thumb{background:var(--axis);border-radius:9px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin:6px 0 4px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);font-weight:640;
+         border-bottom:1px solid var(--axis);white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.seg{white-space:nowrap;font-weight:560}
+td.motion{white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+.win{font-weight:700;position:relative}
+.win::after{content:"";position:absolute;left:6px;right:6px;bottom:4px;height:2px;background:var(--s3);border-radius:2px;opacity:.55}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:baseline;position:relative;top:-1px}
+.dash{display:inline-block;width:14px;height:2px;border-radius:2px;margin-right:8px;vertical-align:middle}
+.callout{border-left:3px solid var(--axis);background:var(--surface-3);border-radius:0 10px 10px 0;padding:16px 20px;margin:22px 0}
+.callout.warn{border-left-color:var(--warn-br);background:var(--warn-bg)}
+.callout.good{border-left-color:var(--good-br);background:var(--good-bg)}
+.callout.bad{border-left-color:var(--bad-br);background:var(--bad-bg)}
+.callout p:last-child{margin-bottom:0}
+.verdict{font-size:18px;line-height:1.5;margin:0}
+.kpi{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
+.tile{flex:1 1 150px;background:var(--surface-1);border:1px solid var(--rule);border-radius:12px;padding:16px 18px}
+.tile .lab{font-size:12px;color:var(--text-muted);margin-bottom:7px;letter-spacing:.02em}
+.tile .val{font-size:29px;font-weight:670;letter-spacing:-.02em;line-height:1.1}
+.tile .sub{font-size:12.5px;color:var(--text-secondary);margin-top:5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0}
+@media(max-width:760px){.two{grid-template-columns:1fr}h1{font-size:31px}h3{font-size:22px}.wrap{padding:0 16px 72px}
+ .card{padding:20px 18px}.flush{padding:18px 4px 14px}.tile{flex:1 1 100%}.eq{font-size:13.5px;padding:14px 15px}
+ .lede{font-size:17px}header.top{padding:38px 0 30px}}
+.sw{border-radius:12px;padding:18px 20px;border:1px solid var(--rule);background:var(--surface-1)}
+.sw h5{margin:0 0 10px;font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:650}
+.sw.s h5{color:var(--good-br)} .sw.w h5{color:var(--warn-br)}
+.sw ul{margin:0;padding-left:18px} .sw li{margin-bottom:8px;font-size:14.5px;line-height:1.55}
+.sw li:last-child{margin-bottom:0}
+figure{margin:22px 0 8px}
+figcaption{font-size:13px;color:var(--text-muted);margin-top:2px;padding:0 4px}
+#c1,#c2{display:block;width:100%;height:auto;overflow:visible}
+.legend svg{display:inline-block;flex:0 0 auto;vertical-align:middle;overflow:visible}
+.axis-t{font-size:11.5px;fill:var(--text-muted)}
+.lbl-t{font-size:12.5px;fill:var(--text-secondary);font-weight:600}
+.lbl-s{font-size:11px;fill:var(--text-muted)}
+details{margin:10px 0 0;border-top:1px solid var(--rule);padding-top:12px}
+details summary{cursor:pointer;font-size:13px;color:var(--text-secondary);font-weight:560;list-style:none;padding:2px 0}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▸ ";color:var(--text-muted)}
+details[open] summary::before{content:"▾ "}
+.qa{background:var(--surface-1);border:1px solid var(--rule);border-radius:12px;padding:4px 20px;margin:12px 0}
+.qa summary{font-size:15.5px;color:var(--text-primary);font-weight:600;padding:14px 0}
+.qa details{border-top:none;padding-top:0}
+.qa .ans{padding:2px 0 16px;color:var(--text-secondary);font-size:15px;border-top:1px solid var(--rule);margin-top:4px;padding-top:14px}
+.qa .ans p{margin-bottom:10px}.qa .ans p:last-child{margin:0}
+.heat{font-weight:600;color:#0b0b0b}
+.eq{background:var(--surface-3);border-radius:10px;padding:16px 20px;margin:18px 0;
+    font:15px/1.75 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-x:auto;color:var(--text-primary)}
+.eq b{font-weight:700}
+.toggle{background:transparent;color:var(--text-secondary);border:1px solid var(--rule);border-radius:999px;
+  padding:6px 14px;font-size:12.5px;cursor:pointer;font-weight:560;font-family:inherit}
+.toggle:hover{color:var(--text-primary);border-color:var(--axis)}
+.sitenav{background:var(--surface-1);border-bottom:1px solid var(--rule)}
+.sitenav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:13px;padding-bottom:13px}
+.sitenav a.back{color:var(--text-secondary);text-decoration:none;font-size:13.5px;font-weight:560;white-space:nowrap}
+.sitenav a.back:hover{color:var(--text-primary)}
+.sitenav .crumb{color:var(--text-muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:560px){.sitenav .crumb{display:none}}
+.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--axis);border-radius:9px;
+  padding:9px 12px;font-size:12.5px;box-shadow:0 6px 20px rgba(0,0,0,.13);opacity:0;transition:opacity .1s;z-index:10;min-width:150px}
+.tip .th{font-weight:670;margin-bottom:6px;font-size:12px;color:var(--text-primary)}
+.tip .tr{display:flex;justify-content:space-between;gap:16px;color:var(--text-secondary);line-height:1.7}
+.tip .tv{font-variant-numeric:tabular-nums;color:var(--text-primary);font-weight:600}
+.chartbox{position:relative}
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin:0 0 4px;padding:0 4px;font-size:13px;color:var(--text-secondary)}
+.legend span{display:inline-flex;align-items:center}
+ol.steps{counter-reset:st;list-style:none;padding:0;margin:20px 0}
+ol.steps li{counter-increment:st;position:relative;padding-left:44px;margin-bottom:18px}
+ol.steps li::before{content:counter(st);position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;
+  background:var(--surface-3);color:var(--text-secondary);font-size:13px;font-weight:670;display:grid;place-items:center}
+ol.steps li strong{display:block;margin-bottom:2px}
+.foot{margin-top:72px;padding-top:24px;border-top:1px solid var(--rule);font-size:13px;color:var(--text-muted)}
+</style></head><body data-palette="#2a78d6,#eb6834,#1baf7a"><nav class="sitenav"><div class="wrap"><a class="back" href="../index.html">&#8592; SaaS notes</a><span class="crumb">Unit economics &#183; Section 01</span><button class="toggle" id="tg">Dark mode</button></div></nav>
+<header class="top"><div class="wrap">
+<p class="eyebrow">Study package &#183; SaaS unit economics</p>
+<h1>CAC, Cost of ARR, Payback, and LTV&#8239;:&#8239;CAC</h1>
+<p class="lede">Four metrics, one company, and four different answers to &#8220;which segment should we fund?&#8221; Every number below is computed correctly from the same seven inputs. The point of the package is to show you exactly which piece of information each metric holds that the others cannot see &#8212; and where each one lies to you.</p>
+</div></header>
+<div class="wrap">
+
+<h2>Part 0</h2>
+<h3>There is only one object here</h3>
+<p>Before the metrics: they are not four ideas. They are four questions asked of a single thing.</p>
+<p><strong>You spend money now to acquire a stream of gross profit over time.</strong> That is the whole of SaaS unit economics. One curve &#8212; a hole dug at the start, filled in monthly. Every metric in this package is a measurement taken off that curve.</p>
+<ol class="steps">
+<li><strong>What did I spend per account?</strong> <span class="sec">&#8594; CAC. A reading of the spend, divided by a headcount.</span></li>
+<li><strong>What did I spend per dollar of the stream&#8217;s annual rate?</strong> <span class="sec">&#8594; Cost of ARR. The same spend, divided by dollars instead.</span></li>
+<li><strong>When does the filled-in part equal the hole?</strong> <span class="sec">&#8594; CAC Payback. The zero-crossing.</span></li>
+<li><strong>How much is the whole stream worth against the hole?</strong> <span class="sec">&#8594; LTV&#8239;:&#8239;CAC. The area under the entire curve.</span></li>
+</ol>
+<div class="callout"><p>If you hold the curve firmly, you will never again be confused by a tab labelled &#8220;CAC Payback &#8212; Dollar.&#8221; You will just ask: <em>which reading is this, off which curve?</em></p></div>
+
+<h2>Part 1</h2>
+<h3>The case: Meridian Systems</h3>
+<p>Meridian sells workflow software through three motions. Last year it spent <strong>$8.90M</strong> on sales and marketing and won <strong>$11.37M</strong> of new ARR across <strong>1,302</strong> new logos.</p>
+<p>Everything in the table below is <em>observed</em> &#8212; things a real finance team measures directly. Nothing here is a metric yet.</p>
+<div class="card flush"><table>
+<thead><tr><th>Segment</th><th>Motion</th><th class="n">New logos</th><th class="n">ACV</th><th class="n">New ARR</th><th class="n">S&amp;M spend</th><th class="n">Gross margin</th><th class="n">Gross logo retention</th></tr></thead>
+<tbody><tr><td class="seg"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</td>
+<td class="mut motion">PLG + paid acquisition</td><td class="n">1,200</td><td class="n">$3,000</td>
+<td class="n">$3.60M</td><td class="n">$3.06M</td>
+<td class="n">62%</td><td class="n">68%</td></tr><tr><td class="seg"><span class="dot" style="background:#eb6834"></span>Mid-Market</td>
+<td class="mut motion">Inside sales, 45-day cycle</td><td class="n">90</td><td class="n">$45,000</td>
+<td class="n">$4.05M</td><td class="n">$3.24M</td>
+<td class="n">81%</td><td class="n">88%</td></tr><tr><td class="seg"><span class="dot" style="background:#1baf7a"></span>Enterprise</td>
+<td class="mut motion">Field sales + SE, 9-mo cycle</td><td class="n">12</td><td class="n">$310,000</td>
+<td class="n">$3.72M</td><td class="n">$2.60M</td>
+<td class="n">66%</td><td class="n">94%</td></tr></tbody></table></div>
+<div class="callout warn"><p>Note the two inputs people forget to collect: <strong>gross margin by segment</strong> and <strong>retention by segment</strong>. Two of the four metrics are impossible without them, and most companies carry only a company-wide figure for each. If you take one operational lesson from this package, it is to measure both per segment.</p></div>
+
+<h2>Metric 1</h2>
+<h3>CAC &#8212; what one customer costs</h3>
+<div class="eq">CAC = S&amp;M spend &#247; new logos won &#8194;&#8194;<span class="mut">units: <b>$ per logo</b></span></div>
+<div class="kpi"><div class="tile"><div class="lab"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</div><div class="val">$2,550</div><div class="sub">1,200 logos &#183; $3.06M spend</div></div><div class="tile"><div class="lab"><span class="dot" style="background:#eb6834"></span>Mid-Market</div><div class="val">$36,000</div><div class="sub">90 logos &#183; $3.24M spend</div></div><div class="tile"><div class="lab"><span class="dot" style="background:#1baf7a"></span>Enterprise</div><div class="val">$216,667</div><div class="sub">12 logos &#183; $2.60M spend</div></div></div>
+<div class="callout bad"><p class="verdict"><strong>The verdict CAC gives:</strong> self-serve costs <strong>$2,550</strong> a customer and enterprise costs <strong>$216,667</strong>. Enterprise is <strong>85&#215; more expensive</strong>. Defund it and pour everything into self-serve.</p></div>
+<p>Hold onto that verdict. By the end of this package it will be the single worst decision available to Meridian &#8212; and CAC, computed perfectly correctly, points straight at it.</p>
+<div class="two"><div class="sw s"><h5>What only this metric can do</h5><ul><li>It is the only metric denominated in <strong>accounts</strong>. When your constraint is headcount &#8212; how many reps do I need to land 40 logos &#8212; no dollar metric can answer that.</li><li><strong>Quota and comp design.</strong> Reps carry deals, not dollars of blended efficiency.</li><li><strong>Channel comparison at equal ACV.</strong> Inside one segment, where deal size is roughly constant, CAC is a clean read.</li><li>It is nearly a <strong>fact</strong>. You spent money; you counted logos. Almost no assumptions.</li></ul></div><div class="sw w"><h5>What it is blind to</h5><ul><li><strong>There is no revenue in it.</strong> A cost with no benefit attached cannot tell you whether the spend was good. $216,667 is a bargain for a $310,000 account and a catastrophe for a $3,000 one.</li><li><strong>It treats a logo as a unit of account.</strong> It is not one. Meridian&#8217;s logos range over 100&#215; in size and CAC counts each as 1.</li><li><strong>Blended CAC moves on mix, not on performance</strong> &#8212; demonstrated below.</li><li>Meridian&#8217;s blended CAC is <strong>$6,836</strong>, which describes no customer the company has ever acquired.</li></ul></div></div>
+
+<h4>The phantom crisis</h4>
+<p>Now hold every segment perfectly constant &#8212; same CAC, same efficiency, same margin &#8212; and change only the <em>mix</em>: self-serve volume halves, enterprise grows from 12 logos to 20.</p>
+<div class="card flush"><table>
+<thead><tr><th>Company-wide</th><th class="n">Year 1</th><th class="n">Year 2</th><th class="n">Change</th><th>Reads as</th></tr></thead>
+<tbody>
+<tr><td class="seg">Blended CAC</td><td class="n">$6,836</td><td class="n">$12,822</td><td class="n" style="font-weight:700">+88%</td><td class="sm" style="color:var(--bad-br)">catastrophe</td></tr>
+<tr><td class="seg">Cost of ARR</td><td class="n">0.783x</td><td class="n">0.755x</td><td class="n">-3.5%</td><td class="sm" style="color:var(--good-br)">slight improvement</td></tr>
+<tr><td class="seg">CAC payback</td><td class="n">13.4 mo</td><td class="n">12.9 mo</td><td class="n">-4.0%</td><td class="sm" style="color:var(--good-br)">slight improvement</td></tr>
+</tbody></table></div>
+<div class="callout bad"><p><strong>Blended CAC rose +88%. Nothing got worse.</strong> Not one segment changed by a single dollar. The dollar-denominated metrics both improved, because the company shifted weight toward its more efficient motion. A company managed on blended CAC would spend this quarter explaining a crisis that did not happen &#8212; and would &#8220;fix&#8221; it by cutting the segment that caused the improvement.</p></div>
+
+<h2>Metric 2</h2>
+<h3>Cost of ARR &#8212; what one dollar of revenue costs</h3>
+<p>The fix for a denominator that counts non-comparable things is to stop counting things and count dollars.</p>
+<div class="eq">Cost of ARR = S&amp;M spend &#247; new ARR won &#8194;&#8194;<span class="mut">units: <b>$ per $ &#8212; dimensionless</b></span></div>
+<div class="kpi"><div class="tile"><div class="lab"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</div><div class="val">0.85x</div><div class="sub">$3.06M to buy $3.60M</div></div><div class="tile"><div class="lab"><span class="dot" style="background:#eb6834"></span>Mid-Market</div><div class="val">0.80x</div><div class="sub">$3.24M to buy $4.05M</div></div><div class="tile"><div class="lab"><span class="dot" style="background:#1baf7a"></span>Enterprise</div><div class="val">0.70x</div><div class="sub">$2.60M to buy $3.72M</div></div></div>
+<div class="callout good"><p class="verdict"><strong>Verdict flip #1.</strong> Enterprise spends <strong>0.70</strong> to buy a dollar of ARR; self-serve spends <strong>0.85</strong>. The segment CAC called 85&#215; worse is in fact <strong>the most efficient motion in the company.</strong></p></div>
+<p>CAC did not merely lose precision here. It pointed the wrong way. That is the difference between a noisy metric and a <em>misleading</em> one, and it is why the fix is never &#8220;use CAC more carefully&#8221; &#8212; it is to change the denominator.</p>
+<div class="two"><div class="sw s"><h5>What only this metric can do</h5><ul><li><strong>Dimensionless.</strong> A pure multiple compares across segments, deal sizes, business models, and companies. &#8220;0.80x&#8221; means the same thing at a $2M company and a $2B one.</li><li><strong>Self-weighting.</strong> A big deal adds to numerator and denominator proportionally, so mix shifts cannot manufacture phantom movement.</li><li><strong>No allocation judgment</strong> about which logo is which. All ARR is ARR.</li><li>Still nearly a <strong>fact</strong> &#8212; both terms are observed.</li></ul></div><div class="sw w"><h5>What it is blind to</h5><ul><li><strong>Blind to gross margin.</strong> A dollar of ARR at 81% margin and one at 62% count identically. They are not worth the same, and Metric 3 will prove it.</li><li><strong>Blind to time.</strong> You paid up front; the ARR arrives in monthly slices. A multiple cannot be compared to your runway.</li><li><strong>Blind to retention.</strong> It prices a dollar of ARR without asking how long that dollar survives.</li><li><strong>Scope conventions vary</strong> &#8212; new-logo ARR only, plus expansion (gross), or net of churn (net). All three are called &#8220;Cost of ARR.&#8221; Pick one and never mix them in the same comparison.</li></ul></div></div>
+
+<h4>What Cost of ARR actually claims &#8212; and what it does not</h4>
+<p>Two things trip almost everyone here, and both are about <em>units</em> rather than economics.</p>
+<h4 style="margin-top:22px">1. It says nothing about &#8220;forever&#8221;</h4>
+<p>It is tempting to read 0.78x as <em>&#8220;we paid 78 cents to earn a dollar of revenue every year from now on.&#8221;</em> It makes no such claim. ARR is a <strong>run rate</strong> &#8212; a snapshot of what today&#8217;s subscription base annualizes to, not a promise that it persists. Whether that dollar survives eight months or eight years is invisible to this metric; that is exactly the blind spot listed above.</p>
+<div class="callout"><p>Say it this way instead: <strong>Cost of ARR is what it cost to raise the annualized revenue run-rate by $1.</strong> No duration claim, stated or implied.</p></div>
+<h4 style="margin-top:26px">2. There is no period mismatch</h4>
+<p>The common worry: <em>&#8220;we are dividing one month of spend by an annual revenue figure &#8212; isn&#8217;t that apples to oranges?&#8221;</em> It is not, and the reason is worth internalising.</p>
+<p>The denominator is not &#8220;a year of revenue.&#8221; It is <strong>the increase in the run rate that this period&#8217;s activity produced.</strong> The word <em>annualized</em> describes the unit of that quantity, not the stretch of time it was accumulated over.</p>
+<div class="callout"><p>You spend $2,000 on a course in March and it raises your salary by $8,000 a year. Cost per dollar of raise = 0.25x. Nobody objects that &#8220;$2,000 is March and $8,000 is annual&#8221; &#8212; because the $8,000&#8202;/&#8202;year is <em>the size of the raise</em>, and March is <em>when you bought it</em>. Cost of ARR is that sentence, applied to a company.</p></div>
+<p>Formally: the numerator is a <strong>flow</strong> over a period (dollars spent in January); the denominator is a <strong>change in a stock</strong> over the same period (the run rate rose by so much during January). Both describe January. Matched.</p>
+<h4 style="margin-top:26px">The proof: it is period-invariant</h4>
+<p>Because both terms scale with the length of the period, they cancel. Meridian at a steady run rate, computed three ways:</p>
+<div class="card flush"><table>
+<thead><tr><th>Computed over</th><th class="n">S&amp;M spend</th><th class="n">New ARR won</th><th class="n">Cost of ARR</th></tr></thead>
+<tbody><tr><td class="seg">One month</td><td class="n">$741,667</td><td class="n">$947,500</td><td class="n" style="font-weight:700">0.783x</td></tr><tr><td class="seg">One quarter</td><td class="n">$2,225,000</td><td class="n">$2,842,500</td><td class="n" style="font-weight:700">0.783x</td></tr><tr><td class="seg">Full year</td><td class="n">$8,900,000</td><td class="n">$11,370,000</td><td class="n" style="font-weight:700">0.783x</td></tr></tbody></table></div>
+<p>Identical, every time. That is what being a pure ratio buys you, and it is why a workbook computing this monthly and a model computing it annually are both legitimately reporting &#8220;Cost of ARR.&#8221; <strong>A real period error looks different</strong> &#8212; one month of spend against a <em>full year</em> of new ARR (a genuine 12&#215; mistake), or comparing this month&#8217;s spend to bookings it could not possibly have caused yet (the lag problem, which is about timing, not units).</p>
+
+<h2>Metric 3</h2>
+<h3>CAC Payback &#8212; when you are made whole</h3>
+<p>Now change the question. Not <em>how efficient was that</em>, but <em>I am out $2.60M &#8212; when do I get it back?</em> Two corrections turn Cost of ARR into that answer.</p>
+<ol class="steps">
+<li><strong>Revenue is not repayment.</strong> When a customer pays you a dollar you do not keep a dollar &#8212; hosting, support, and infrastructure eat part of it. What actually fills the hole is <em>gross profit</em>. So divide by GM%.</li>
+<li><strong>It arrives monthly.</strong> ARR is an annual rate; you collect roughly one twelfth each month. So multiply by 12.</li>
+</ol>
+<div class="eq">Payback = <b>Cost of ARR &#247; GM% &#215; 12</b> &#8194;&#8194;<span class="mut">units: <b>months</b></span></div>
+<p class="sec">That identity is not a coincidence or a shortcut. It is what falls out when you take Cost of ARR and ask it to account for margin and for time. Payback <em>is</em> Cost of ARR, rescaled.</p>
+<h4>Where the &#215;12 comes from</h4>
+<p>That &#215;12 is the single most common sticking point in this formula, because it reads as <em>&#8220;make the payback twelve times longer,&#8221;</em> which sounds like nonsense. It is doing no economic work at all. Build the number without it and watch where it appears.</p>
+<h4 style="margin-top:22px">Do it with no formula</h4>
+<p>Meridian is out <strong>$8,900,000</strong>. How much comes back each month?</p>
+<p>It won <strong>$11,370,000</strong> of ARR, and ARR is <em>per year</em>. So per month it collects $11,370,000 &#247; 12 = <strong>$947,500</strong>.</p>
+<div class="eq">$8,900,000 &#247; $947,500 = <b>9.39 months</b> <span class="mut">&#8212; on revenue, before margin</span></div>
+<p>Done. No &#215;12 anywhere. The only 12 that appeared was a <strong>&#247;12</strong>, and it appeared for an obvious reason: to turn a yearly rate into a monthly one.</p>
+<h4 style="margin-top:26px">The &#215;12 is that same &#247;12, relocated</h4>
+<p>It only shows up if you insist on writing this in terms of Cost of ARR. Watch it migrate across the fraction bar:</p>
+<div class="eq">$8,900,000 &#247; ( $11,370,000 &#247; 12 )<br>
+= $8,900,000 &#215; ( 12 &#247; $11,370,000 ) &#8194;&#8194;<span class="mut">dividing by a fraction = multiplying by its flip</span><br>
+= ( $8,900,000 &#247; $11,370,000 ) &#215; 12<br>
+= <b>0.783 &#215; 12 = 9.39 months</b></div>
+<p>It is not a second step. It is the &#247;12 seen from the other side of the fraction bar &#8212; dividing the monthly income by 12 and multiplying the answer by 12 are the same operation.</p>
+<div class="callout warn"><p><strong>Why it feels backwards:</strong> &#8220;&#215;12&#8221; sounds like it lengthens the payback. It does not. It shrinks the <em>monthly income</em> by 12 &#8212; which of course lengthens the payback. Shrink a denominator by twelve and the quotient grows by twelve. Same fact, stated from opposite ends.</p></div>
+<h4 style="margin-top:26px">The unlock: Cost of ARR is already a duration</h4>
+<p>Elsewhere this package calls Cost of ARR <em>dimensionless</em>, which is true under one reading &#8212; ARR as a plain dollar amount, so dollars over dollars cancel. There is a second reading, and <strong>the payback formula uses it</strong>:</p>
+<div class="eq">&#8194;&#8194;$8,900,000&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;dollars<br>
+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8194; = &#8194;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8194; = &#8194;<b>years</b><br>
+$11,370,000 per year&#8194;&#8194;&#8194;dollars / year</div>
+<p>Treat ARR as what it actually is &#8212; <strong>a rate, dollars per year</strong> &#8212; and Cost of ARR comes out in <strong>years</strong>. Meridian&#8217;s 0.783x literally means <strong>0.78 years of that revenue stream</strong> to recover the spend.</p>
+<div class="callout good"><p>So multiplying by 12 is not a SaaS move at all. It is the same thing as saying two hours is 120 minutes. <strong>You are restating one duration in a smaller unit.</strong></p></div>
+<h4 style="margin-top:26px">The version with no SaaS in it</h4>
+<p>You are owed $1,200. It comes back at $600 per year.</p>
+<ul><li>In years: 1,200 &#247; 600 = <strong>2 years</strong></li>
+<li>In months: that is $50 a month, so 1,200 &#247; 50 = <strong>24 months</strong></li></ul>
+<p>24 = 2 &#215; 12 &#8212; not because anything changed, but because two years <em>is</em> twenty-four months. Nobody finds that &#215;12 mysterious. It is the identical operation.</p>
+<h4 style="margin-top:26px">So the formula, read honestly</h4>
+<div class="eq">Payback (<b>years</b>)&#8194;&#8194;= Cost of ARR &#247; GM%&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;0.783 &#247; 0.701 = <b>1.12 years</b><br>
+Payback (<b>months</b>) = Cost of ARR &#247; GM% &#215; 12&#8194;&#8194;1.12 &#215; 12 = <b>13.4 months</b></div>
+<p>The <strong>&#247;&#8202;GM%</strong> is the only economically meaningful adjustment in that line &#8212; revenue is not repayment, gross profit is. The <strong>&#215;12 is cosmetic</strong>: it exists purely because the industry quotes payback in months. If the convention were years, no 12 would appear in the formula anywhere.</p>
+
+<div class="kpi"><div class="tile"><div class="lab"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</div><div class="val">16.5 mo</div><div class="sub">0.85x &#247; 62% &#215; 12</div></div><div class="tile"><div class="lab"><span class="dot" style="background:#eb6834"></span>Mid-Market</div><div class="val">11.9 mo</div><div class="sub">0.80x &#247; 81% &#215; 12</div></div><div class="tile"><div class="lab"><span class="dot" style="background:#1baf7a"></span>Enterprise</div><div class="val">12.7 mo</div><div class="sub">0.70x &#247; 66% &#215; 12</div></div></div>
+<div class="callout good"><p class="verdict"><strong>Verdict flip #2.</strong> Mid-market wins &#8212; <strong>11.9 months</strong> against enterprise&#8217;s <strong>12.7</strong>. Enterprise beat mid-market on Cost of ARR by a clear <strong>0.10x</strong> and still loses here, entirely because enterprise carries a <strong>66%</strong> gross margin against mid-market&#8217;s <strong>81%</strong> &#8212; implementation teams, dedicated CSMs, custom infrastructure and SLAs.</p></div>
+<p>This is the cleanest demonstration in the package. <strong>Neither CAC nor Cost of ARR contains the word &#8220;margin.&#8221;</strong> Both are structurally incapable of seeing what just changed the ranking. No amount of care in computing them would have surfaced it.</p>
+
+<figure><div class="chartbox" id="c1box">
+<div class="legend"><span><span class="dash" style="background:#2a78d6"></span>Self-Serve SMB</span><span><span class="dash" style="background:#eb6834"></span>Mid-Market</span><span><span class="dash" style="background:#1baf7a"></span>Enterprise</span></div>
+<svg id="c1" viewBox="0 0 860 392" role="img" aria-label="Cumulative gross profit per dollar of new ARR, net of acquisition spend, over 30 months for three segments"><rect x="58" y="197.4" width="632" height="120.6" fill="var(--surface-3)" opacity=".6"/><text x="68" y="309" class="lbl-s">cash under water</text><line x1="58" y1="292.6" x2="690" y2="292.6" stroke="var(--grid)" stroke-width="1"/><line x1="58" y1="260.9" x2="690" y2="260.9" stroke="var(--grid)" stroke-width="1"/><line x1="58" y1="229.1" x2="690" y2="229.1" stroke="var(--grid)" stroke-width="1"/><line x1="58" y1="165.7" x2="690" y2="165.7" stroke="var(--grid)" stroke-width="1"/><line x1="58" y1="133.9" x2="690" y2="133.9" stroke="var(--grid)" stroke-width="1"/><line x1="58" y1="102.2" x2="690" y2="102.2" stroke="var(--grid)" stroke-width="1"/><line x1="58" y1="70.4" x2="690" y2="70.4" stroke="var(--grid)" stroke-width="1"/><line x1="58" y1="38.7" x2="690" y2="38.7" stroke="var(--grid)" stroke-width="1"/><text x="48" y="296.6" class="axis-t" text-anchor="end">-$0.75</text><text x="48" y="264.9" class="axis-t" text-anchor="end">-$0.50</text><text x="48" y="233.1" class="axis-t" text-anchor="end">-$0.25</text><text x="48" y="169.7" class="axis-t" text-anchor="end">+$0.25</text><text x="48" y="137.9" class="axis-t" text-anchor="end">+$0.50</text><text x="48" y="106.2" class="axis-t" text-anchor="end">+$0.75</text><text x="48" y="74.4" class="axis-t" text-anchor="end">+$1.00</text><text x="48" y="42.7" class="axis-t" text-anchor="end">+$1.25</text><text x="48" y="201.4" class="axis-t" text-anchor="end">$0.00</text><line x1="58" y1="197.4" x2="690" y2="197.4" stroke="var(--axis)" stroke-width="1.5"/><line x1="58" y1="26" x2="58" y2="318" stroke="var(--axis)" stroke-width="1"/><line x1="58.0" y1="318" x2="58.0" y2="323" stroke="var(--axis)" stroke-width="1"/><text x="58.0" y="339" class="axis-t" text-anchor="middle">0</text><line x1="184.4" y1="318" x2="184.4" y2="323" stroke="var(--axis)" stroke-width="1"/><text x="184.4" y="339" class="axis-t" text-anchor="middle">6</text><line x1="310.8" y1="318" x2="310.8" y2="323" stroke="var(--axis)" stroke-width="1"/><text x="310.8" y="339" class="axis-t" text-anchor="middle">12</text><line x1="437.2" y1="318" x2="437.2" y2="323" stroke="var(--axis)" stroke-width="1"/><text x="437.2" y="339" class="axis-t" text-anchor="middle">18</text><line x1="563.6" y1="318" x2="563.6" y2="323" stroke="var(--axis)" stroke-width="1"/><text x="563.6" y="339" class="axis-t" text-anchor="middle">24</text><line x1="690.0" y1="318" x2="690.0" y2="323" stroke="var(--axis)" stroke-width="1"/><text x="690.0" y="339" class="axis-t" text-anchor="middle">30</text><text x="374" y="360" class="axis-t" text-anchor="middle">months after acquisition</text><line id="c1cross" x1="0" y1="26" x2="0" y2="318" stroke="var(--axis)" stroke-width="1" stroke-opacity=".8" style="opacity:0"/><path d="M 58.0 305.3 L 79.1 298.7 L 100.1 292.2 L 121.2 285.6 L 142.3 279.1 L 163.3 272.5 L 184.4 265.9 L 205.5 259.4 L 226.5 252.8 L 247.6 246.3 L 268.7 239.7 L 289.7 233.2 L 310.8 226.6 L 331.9 220.0 L 352.9 213.5 L 374.0 206.9 L 395.1 200.4 L 416.1 193.8 L 437.2 187.2 L 458.3 180.7 L 479.3 174.1 L 500.4 167.6 L 521.5 161.0 L 542.5 154.4 L 563.6 147.9 L 584.7 141.3 L 605.7 134.8 L 626.8 128.2 L 647.9 121.6 L 668.9 115.1 L 690.0 108.5" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M 58.0 299.0 L 79.1 290.4 L 100.1 281.8 L 121.2 273.2 L 142.3 264.7 L 163.3 256.1 L 184.4 247.5 L 205.5 239.0 L 226.5 230.4 L 247.6 221.8 L 268.7 213.3 L 289.7 204.7 L 310.8 196.1 L 331.9 187.6 L 352.9 179.0 L 374.0 170.4 L 395.1 161.8 L 416.1 153.3 L 437.2 144.7 L 458.3 136.1 L 479.3 127.6 L 500.4 119.0 L 521.5 110.4 L 542.5 101.9 L 563.6 93.3 L 584.7 84.7 L 605.7 76.1 L 626.8 67.6 L 647.9 59.0 L 668.9 50.4 L 690.0 41.9" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M 58.0 286.1 L 79.1 279.1 L 100.1 272.2 L 121.2 265.2 L 142.3 258.2 L 163.3 251.2 L 184.4 244.2 L 205.5 237.2 L 226.5 230.3 L 247.6 223.3 L 268.7 216.3 L 289.7 209.3 L 310.8 202.3 L 331.9 195.4 L 352.9 188.4 L 374.0 181.4 L 395.1 174.4 L 416.1 167.4 L 437.2 160.4 L 458.3 153.5 L 479.3 146.5 L 500.4 139.5 L 521.5 132.5 L 542.5 125.5 L 563.6 118.5 L 584.7 111.6 L 605.7 104.6 L 626.8 97.6 L 647.9 90.6 L 668.9 83.6 L 690.0 76.6" fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="404.6" cy="197.4" r="5" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="2"/><circle cx="307.7" cy="197.4" r="5" fill="#eb6834" stroke="var(--surface-1)" stroke-width="2"/><circle cx="325.7" cy="197.4" r="5" fill="#1baf7a" stroke="var(--surface-1)" stroke-width="2"/><text x="702.0" y="107.5" class="lbl-t">Self-Serve SMB</text><text x="702.0" y="122.5" class="lbl-s">breaks even 16.5 mo</text><text x="702.0" y="40.9" class="lbl-t">Mid-Market</text><text x="702.0" y="55.9" class="lbl-s">breaks even 11.9 mo</text><text x="702.0" y="75.6" class="lbl-t">Enterprise</text><text x="702.0" y="90.6" class="lbl-s">breaks even 12.7 mo</text><circle class="hv" cx="0" cy="0" r="4.5" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="2" style="opacity:0"/><circle class="hv" cx="0" cy="0" r="4.5" fill="#eb6834" stroke="var(--surface-1)" stroke-width="2" style="opacity:0"/><circle class="hv" cx="0" cy="0" r="4.5" fill="#1baf7a" stroke="var(--surface-1)" stroke-width="2" style="opacity:0"/></svg><div class="tip" id="c1tip"></div></div>
+<figcaption>Cumulative gross profit per $1 of new ARR, net of acquisition spend. Each line starts at minus its Cost of ARR and climbs by GM&#37;&#8202;/&#8202;12 per month. The dot marks the zero-crossing &#8212; that is the payback number. Hover for values.</figcaption></figure>
+<details><summary>Table view</summary><div class="scroll"><table>
+<thead><tr><th>Segment</th><th class="n">Starts at</th><th class="n">Monthly climb</th><th class="n">Crosses zero</th><th class="n">At month 30</th></tr></thead>
+<tbody><tr><td class="seg"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</td><td class="n">-$0.85</td><td class="n">+$0.0517</td><td class="n">16.5 mo</td><td class="n">+$0.70</td></tr><tr><td class="seg"><span class="dot" style="background:#eb6834"></span>Mid-Market</td><td class="n">-$0.80</td><td class="n">+$0.0675</td><td class="n">11.9 mo</td><td class="n">+$1.23</td></tr><tr><td class="seg"><span class="dot" style="background:#1baf7a"></span>Enterprise</td><td class="n">-$0.70</td><td class="n">+$0.0550</td><td class="n">12.7 mo</td><td class="n">+$0.95</td></tr></tbody></table></div></details>
+
+<p style="margin-top:26px">Look at where the lines are at month 30 versus where they cross zero. Mid-market crosses first and is still ahead at month 30 &#8212; but that is an artifact of this window. <strong>Payback throws away everything after the crossing point.</strong> A metric that stops reading at break-even cannot distinguish a customer who leaves the next month from one who pays for a decade. That is Metric 4&#8217;s job.</p>
+<div class="two"><div class="sw s"><h5>What only this metric can do</h5><ul><li><strong>It is the only one that knows about gross margin.</strong> Two companies at an identical Cost of ARR with 85&#37; and 45&#37; margins are equally &#8220;efficient&#8221; and carry completely different cash risk. Payback exposes it; Cost of ARR hides it.</li><li><strong>Denominated in time</strong> &#8212; so it is directly comparable to your runway, your sales cycle, your contract length, your churn horizon. A dimensionless multiple can be compared to none of those.</li><li><strong>It is a working-capital statement.</strong> Growth consumes cash in proportion to payback. Short payback means growth funds itself; long payback means every new customer needs outside money.</li><li>Only one assumption (that margin holds). Still close to measurable.</li></ul></div><div class="sw w"><h5>What it is blind to</h5><ul><li><strong>It assumes the customer is still there when the crossing arrives.</strong> The straight lines above imply a cohort that never churns. None of Meridian&#8217;s do.</li><li><strong>It ignores everything after break-even</strong> &#8212; which for a sticky segment is where nearly all the value lives.</li><li><strong>Undiscounted by default.</strong> A dollar recovered in month 24 is worth less than a dollar spent in month 0.</li><li><strong>It is silent on scale.</strong> A 10-month payback on $2M of spend and on $200M of spend are not the same business decision.</li></ul></div></div>
+
+<h2>The correction</h2>
+<h3>What payback cannot see: the cohort is shrinking</h3>
+<p>Every line in that chart is straight, which encodes an assumption nobody says out loud: <strong>100&#37; of the cohort is still paying in the month you break even.</strong></p>
+<p>Apply each segment&#8217;s actual gross retention to its own curve &#8212; discount each month&#8217;s gross profit by the share of the cohort still alive to pay it &#8212; and break-even moves.</p>
+<figure><div class="chartbox" id="c2box">
+<div class="legend"><span><svg width="15" height="15" style="margin-right:7px;overflow:visible"><circle cx="7" cy="8" r="5.5" fill="var(--surface-1)" stroke="var(--text-secondary)" stroke-width="2.2"/></svg>Standard payback</span><span><svg width="15" height="15" style="margin-right:7px;overflow:visible"><circle cx="7" cy="8" r="6" fill="var(--text-secondary)"/></svg>Survival-adjusted</span></div>
+<svg id="c2" viewBox="0 0 860 246" role="img" aria-label="Standard versus survival-adjusted CAC payback by segment"><line x1="196.0" y1="18" x2="196.0" y2="182" stroke="var(--grid)" stroke-width="1"/><text x="196.0" y="200" class="axis-t" text-anchor="middle">0</text><line x1="310.0" y1="18" x2="310.0" y2="182" stroke="var(--grid)" stroke-width="1"/><text x="310.0" y="200" class="axis-t" text-anchor="middle">6</text><line x1="424.0" y1="18" x2="424.0" y2="182" stroke="var(--grid)" stroke-width="1"/><text x="424.0" y="200" class="axis-t" text-anchor="middle">12</text><line x1="538.0" y1="18" x2="538.0" y2="182" stroke="var(--grid)" stroke-width="1"/><text x="538.0" y="200" class="axis-t" text-anchor="middle">18</text><line x1="652.0" y1="18" x2="652.0" y2="182" stroke="var(--grid)" stroke-width="1"/><text x="652.0" y="200" class="axis-t" text-anchor="middle">24</text><text x="443" y="220" class="axis-t" text-anchor="middle">months to break even</text><text x="178" y="49" class="lbl-t" text-anchor="end">Self-Serve SMB</text><line x1="508.6" y1="44" x2="640.8" y2="44" stroke="#2a78d6" stroke-width="2" stroke-opacity=".45"/><circle cx="508.6" cy="44" r="5.5" fill="var(--surface-1)" stroke="#2a78d6" stroke-width="2.5"/><circle cx="640.8" cy="44" r="5.5" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="2"/><text x="656.8" y="49" class="lbl-s">23.4 mo &#183; +42%</text><rect class="hit" x="494.6" y="26" width="252.2" height="36" fill="transparent" data-name="Self-Serve SMB" data-p="16.5" data-a="23.4" data-d="+42%"/><text x="178" y="107" class="lbl-t" text-anchor="end">Mid-Market</text><line x1="421.2" y1="102" x2="436.7" y2="102" stroke="#eb6834" stroke-width="2" stroke-opacity=".45"/><circle cx="421.2" cy="102" r="5.5" fill="var(--surface-1)" stroke="#eb6834" stroke-width="2.5"/><circle cx="436.7" cy="102" r="5.5" fill="#eb6834" stroke="var(--surface-1)" stroke-width="2"/><text x="452.7" y="107" class="lbl-s">12.7 mo &#183; +7%</text><rect class="hit" x="407.2" y="84" width="135.5" height="36" fill="transparent" data-name="Mid-Market" data-p="11.9" data-a="12.7" data-d="+7%"/><text x="178" y="165" class="lbl-t" text-anchor="end">Enterprise</text><line x1="437.4" y1="160" x2="445.7" y2="160" stroke="#1baf7a" stroke-width="2" stroke-opacity=".45"/><circle cx="437.4" cy="160" r="5.5" fill="var(--surface-1)" stroke="#1baf7a" stroke-width="2.5"/><circle cx="445.7" cy="160" r="5.5" fill="#1baf7a" stroke="var(--surface-1)" stroke-width="2"/><text x="461.7" y="165" class="lbl-s">13.1 mo &#183; +3%</text><rect class="hit" x="423.4" y="142" width="128.3" height="36" fill="transparent" data-name="Enterprise" data-p="12.7" data-a="13.1" data-d="+3%"/></svg><div class="tip" id="c2tip"></div></div>
+<figcaption>Break-even with the cohort held constant (open) versus decayed at each segment&#8217;s own gross retention rate (filled).</figcaption></figure>
+<div class="card flush"><table>
+<thead><tr><th>Segment</th><th class="n">Gross retention</th><th class="n">Standard payback</th><th class="n">Cohort still paying</th><th class="n">True break-even</th><th class="n">Understated by</th></tr></thead>
+<tbody><tr><td class="seg"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</td><td class="n">68%</td><td class="n">16.5 mo</td><td class="n">58.9%</td><td class="n">23.4 mo</td><td class="n" style="font-weight:660">+42%</td></tr><tr><td class="seg"><span class="dot" style="background:#eb6834"></span>Mid-Market</td><td class="n">88%</td><td class="n">11.9 mo</td><td class="n">88.1%</td><td class="n">12.7 mo</td><td class="n" style="font-weight:660">+7%</td></tr><tr><td class="seg"><span class="dot" style="background:#1baf7a"></span>Enterprise</td><td class="n">94%</td><td class="n">12.7 mo</td><td class="n">93.7%</td><td class="n">13.1 mo</td><td class="n" style="font-weight:660">+3%</td></tr></tbody></table></div>
+<div class="callout bad"><p><strong>Standard payback systematically flatters churny segments</strong> &#8212; and flatters them most, which is precisely backwards. Enterprise moves +3%. Mid-market moves +7%. Self-serve moves <strong>+42%</strong>, from a mediocre 16.5 months to <strong>23.4 months</strong>, because by month 16.5 only <strong>59%</strong> of that cohort is still paying.</p>
+<p>Note what this does to the ranking: mid-market and enterprise were 0.9 months apart and are now 0.5 apart &#8212; effectively tied. The apparent gap between them was mostly an artifact of ignoring retention.</p></div>
+
+<h2>Metric 4</h2>
+<h3>LTV&#8239;:&#8239;CAC &#8212; the whole stream against the hole</h3>
+<p>The only metric that reads past break-even. It asks what the entire relationship is worth, not when it turns positive.</p>
+<div class="eq">LTV = (ACV &#215; GM%) &#247; (annual churn + discount rate)&#8194;&#8194;&#8194;LTV&#8239;:&#8239;CAC = LTV &#247; CAC &#8194;&#8194;<span class="mut">units: <b>multiple</b></span></div>
+<div class="kpi"><div class="tile"><div class="lab"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</div><div class="val">1.66x</div><div class="sub">LTV $4,227 &#183; CAC $2,550</div></div><div class="tile"><div class="lab"><span class="dot" style="background:#eb6834"></span>Mid-Market</div><div class="val">4.22x</div><div class="sub">LTV $151,875 &#183; CAC $36,000</div></div><div class="tile"><div class="lab"><span class="dot" style="background:#1baf7a"></span>Enterprise</div><div class="val">5.25x</div><div class="sub">LTV $1,136,667 &#183; CAC $216,667</div></div></div>
+<div class="callout good"><p class="verdict"><strong>Verdict flip #3.</strong> Enterprise takes it back at <strong>5.25x</strong>, and self-serve is finally exposed: <strong>1.66x</strong>, beneath every threshold anyone uses. The segment with the best CAC in the company is the one destroying value.</p></div>
+<div class="two"><div class="sw s"><h5>What only this metric can do</h5><ul><li><strong>It is the only one that looks past break-even.</strong> Payback stops reading at the zero-crossing; for a segment retaining 94% a year, almost all the value is after that point.</li><li><strong>It is the only one that prices duration.</strong> Retention enters no other metric in this package.</li><li>It puts cost and value in <strong>the same unit</strong>, so the comparison is direct.</li><li>It is the right frame for <strong>where to build</strong> &#8212; long-horizon segment and product bets.</li></ul></div><div class="sw w"><h5>What it is blind to</h5><ul><li><strong>It is a forecast, not a measurement.</strong> Every other metric here is close to observed. This one requires you to predict churn years out.</li><li><strong>1&#8202;&#247;&#8202;churn assumes a constant hazard rate.</strong> Real churn usually falls with tenure, so the formula is wrong in a direction that varies by segment.</li><li><strong>It is most fragile exactly where it is most flattering</strong> &#8212; see the sensitivity grid below.</li><li>The famous <strong>&#8220;3x is healthy&#8221;</strong> benchmark is closer to folklore than evidence. Treat it as a smell test, never a gate.</li></ul></div></div>
+<h4>How much of this number did you make up?</h4>
+<p>Same inputs. The only thing changing across these columns is the discount rate &#8212; a single assumption, unobservable, chosen by whoever built the model.</p>
+<div class="card flush"><table>
+<thead><tr><th>Segment</th><th class="n">d = 8%</th><th class="n">d = 10%</th><th class="n">d = 12%</th><th class="n">d = 15%</th><th class="n">d = 20%</th><th class="n">Swing</th></tr></thead>
+<tbody><tr><td class="seg"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</td><td class="n heat" style="background:#e8f1fd">1.82x</td><td class="n heat" style="background:#e8f1fd">1.74x</td><td class="n heat" style="background:#e8f1fd">1.66x</td><td class="n heat" style="background:#e8f1fd">1.55x</td><td class="n heat" style="background:#e8f1fd">1.40x</td><td class="n mut">+30%</td></tr><tr><td class="seg"><span class="dot" style="background:#eb6834"></span>Mid-Market</td><td class="n heat" style="background:#9ec5f4">5.06x</td><td class="n heat" style="background:#b7d3f6">4.60x</td><td class="n heat" style="background:#b7d3f6">4.22x</td><td class="n heat" style="background:#b7d3f6">3.75x</td><td class="n heat" style="background:#cde2fb">3.16x</td><td class="n mut">+60%</td></tr><tr><td class="seg"><span class="dot" style="background:#1baf7a"></span>Enterprise</td><td class="n heat" style="background:#86b6ef">6.75x</td><td class="n heat" style="background:#9ec5f4">5.90x</td><td class="n heat" style="background:#9ec5f4">5.25x</td><td class="n heat" style="background:#b7d3f6">4.50x</td><td class="n heat" style="background:#b7d3f6">3.63x</td><td class="n mut">+86%</td></tr></tbody></table></div>
+<div class="callout warn"><p>Enterprise ranges from <strong>6.75x</strong> to <strong>3.63x</strong> depending on a number nobody can verify. Self-serve barely moves. <strong>The metric is least reliable precisely where it is most enthusiastic</strong> &#8212; because a long-lived segment&#8217;s value sits far in the future, where discounting bites hardest. Any argument that rests on a high LTV&#8239;:&#8239;CAC rests mostly on the assumption, not the data.</p></div>
+
+<h2>Part 3</h2>
+<h3>The scoreboard</h3>
+<div class="card flush"><table>
+<thead><tr><th>Metric</th><th class="n"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</th><th class="n"><span class="dot" style="background:#eb6834"></span>Mid-Market</th><th class="n"><span class="dot" style="background:#1baf7a"></span>Enterprise</th><th>Winner is best at</th></tr></thead>
+<tbody><tr><td class="seg"><strong>CAC</strong><br><span class="mut sm">$ per logo</span></td><td class="n win">$2,550</td><td class="n">$36,000</td><td class="n">$216,667</td><td class="mut sm">Cheapest logo</td></tr><tr><td class="seg"><strong>Cost of ARR</strong><br><span class="mut sm">multiple</span></td><td class="n">0.85x</td><td class="n">0.80x</td><td class="n win">0.70x</td><td class="mut sm">Cheapest dollar of ARR</td></tr><tr><td class="seg"><strong>CAC Payback</strong><br><span class="mut sm">months</span></td><td class="n">16.5 mo</td><td class="n win">11.9 mo</td><td class="n">12.7 mo</td><td class="mut sm">Fastest to whole</td></tr><tr><td class="seg"><strong>LTV : CAC</strong><br><span class="mut sm">multiple</span></td><td class="n">1.66x</td><td class="n">4.22x</td><td class="n win">5.25x</td><td class="mut sm">Most lifetime value per dollar spent</td></tr></tbody></table></div>
+<div class="callout"><p class="verdict"><strong>Four metrics. Three different winners. Zero errors.</strong> Every figure above is computed correctly from the same seven observed inputs. They disagree because they are asking different questions &#8212; not because any of them is broken.</p></div>
+<p>The most useful row to sit with is the first one. <strong>The segment that wins on CAC loses on every other metric</strong>, and loses badly: worst Cost of ARR, worst payback, worst LTV&#8239;:&#8239;CAC, and a survival-adjusted break-even of 23.4 months. CAC is not a gentler version of the others. On this company it is <em>anti-correlated</em> with them.</p>
+
+<h2>Part 4</h2>
+<h3>The question none of the four can answer</h3>
+<p>Every metric in this package is an <strong>average of what already happened</strong>. Meridian&#8217;s actual decision is about the <em>next</em> dollar, and averages say nothing about it &#8212; because you exhaust your cheapest acquisition first, so the next dollar always costs more than the last.</p>
+<p class="sec sm">The marginal figures below are stipulated for the example &#8212; they are the kind of thing you learn from channel-level tests, not from the P&amp;L.</p>
+<div class="card flush"><table>
+<thead><tr><th>Where the next $1M goes</th><th class="n">Average Cost of ARR</th><th class="n">Marginal Cost of ARR</th><th class="n">Average payback</th><th class="n">Marginal payback</th></tr></thead>
+<tbody><tr><td class="seg"><span class="dot" style="background:#2a78d6"></span>Self-Serve SMB</td><td class="n">0.85x</td><td class="n">1.45x</td><td class="n">16.5 mo</td><td class="n">28.1 mo</td></tr><tr><td class="seg"><span class="dot" style="background:#eb6834"></span>Mid-Market</td><td class="n">0.80x</td><td class="n">0.72x</td><td class="n">11.9 mo</td><td class="n">10.7 mo</td></tr><tr><td class="seg"><span class="dot" style="background:#1baf7a"></span>Enterprise</td><td class="n">0.70x</td><td class="n">1.10x</td><td class="n">12.7 mo</td><td class="n">20.0 mo</td></tr></tbody></table></div>
+<p>Self-serve&#8217;s paid channels are saturating &#8212; bidding against itself, rising CPCs. Enterprise&#8217;s next deals require standing up a new region: new leadership, localization, a 12-month ramp. Mid-market has an untested partner channel that tests <em>better</em> than its current blend.</p>
+<div class="callout good"><p><strong>The money should go to mid-market</strong> &#8212; which won exactly one of the four metrics, and lost the headline CAC comparison by 14&#215;. Meanwhile self-serve, the CAC champion, has a marginal payback of <strong>28 months</strong> and is the <em>worst</em> available use of the next dollar at Meridian.</p></div>
+<p>No reordering of the four metrics fixes this. It is a category the whole framework omits. When someone shows you a healthy blended payback, the question to ask is: <em>what does the next dollar do?</em></p>
+
+<h2>Part 5</h2>
+<h3>Which metric answers which question</h3>
+<div class="card flush"><table>
+<thead><tr><th>The question in the room</th><th>The metric</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>How many reps do we hire to land 40 logos?</td><td class="seg"><strong>CAC</strong></td><td class="sm sec">Only metric denominated in accounts</td></tr>
+<tr><td>Is paid search or outbound better for mid-market?</td><td class="seg"><strong>CAC</strong></td><td class="sm sec">Same segment &#8594; ACV is constant &#8594; CAC is a clean read</td></tr>
+<tr><td>Which motion converts spend into revenue best?</td><td class="seg"><strong>Cost of ARR</strong></td><td class="sm sec">Dimensionless, self-weighting, mix-proof</td></tr>
+<tr><td>How do we compare to peers?</td><td class="seg"><strong>Cost of ARR</strong></td><td class="sm sec">A pure multiple travels across companies</td></tr>
+<tr><td>How hard can we push spend on this runway?</td><td class="seg"><strong>Payback</strong></td><td class="sm sec">Denominated in time; a working-capital statement</td></tr>
+<tr><td>Does a services-heavy motion actually pay?</td><td class="seg"><strong>Payback</strong></td><td class="sm sec">The only metric that sees gross margin</td></tr>
+<tr><td>Which segment do we build the company around?</td><td class="seg"><strong>LTV&#8239;:&#8239;CAC</strong></td><td class="sm sec">The only metric that prices duration &#8212; with the caveats</td></tr>
+<tr><td>Should we spend more next quarter?</td><td class="seg"><strong>None of them</strong></td><td class="sm sec">Marginal question; all four are averages</td></tr>
+</tbody></table></div>
+<div class="callout"><p><strong>The habit worth building:</strong> when someone quotes you one of these numbers, ask what it is blind to. CAC is blind to revenue. Cost of ARR is blind to margin, time, and retention. Payback is blind to retention and to everything after break-even. LTV&#8239;:&#8239;CAC is blind to nothing &#8212; and is therefore mostly assumption. There is no metric at the top of this ladder that is simply <em>correct</em>. Reliability falls as completeness rises.</p></div>
+
+<h2>Part 6</h2>
+<h3>Check yourself</h3>
+<div class="qa"><details><summary>1. Blended CAC rose +88% year over year while every segment performed identically. What happened &#8212; and which number confirms it?</summary><div class="ans"><p>Mix shift. The company sold proportionally more enterprise, and enterprise logos carry a far higher CAC by construction because they are far larger. Confirm it with Cost of ARR (0.783x &#8594; 0.755x) or payback (13.4 &#8594; 12.9 months) &#8212; both improved. Better still, look at CAC <em>by segment</em>, where nothing moved at all.</p></div></details></div>
+<div class="qa"><details><summary>2. Enterprise has the best Cost of ARR but loses on payback. Which single input causes that, and why can Cost of ARR never see it?</summary><div class="ans"><p>Gross margin &#8212; 66% for enterprise against 81% for mid-market. Cost of ARR is spend divided by <em>revenue</em>; gross margin appears nowhere in the formula. Payback divides by gross <em>profit</em>, so it is the first metric in the sequence where margin can matter.</p></div></details></div>
+<div class="qa"><details><summary>3. Self-serve has by far the best CAC and the worst of everything else. What is the structural reason?</summary><div class="ans"><p>CAC has no revenue in it. It is a cost with no benefit attached. Self-serve buys logos cheaply ($2,550) but those logos are worth $3,000 a year against enterprise&#8217;s $310,000 &#8212; a 103&#215; difference CAC is structurally unable to represent. Cheap per logo, expensive per dollar.</p></div></details></div>
+<div class="qa"><details><summary>4. Standard payback says self-serve breaks even at 16.5 months. Why is 23.4 the honest answer?</summary><div class="ans"><p>Because the straight-line curve assumes the whole cohort is still paying in month 16.5. At 68% gross retention only <strong>59%</strong> of it is. Weight each month&#8217;s gross profit by the share of the cohort still alive and break-even slides to 23.4 months. The error scales with churn, so the flattery is largest exactly where the risk is.</p></div></details></div>
+<div class="qa"><details><summary>5. Enterprise LTV&#8239;:&#8239;CAC is 5.25x at a 12&#37; discount rate and 3.63x at 20&#37;. What should you conclude?</summary><div class="ans"><p>That most of the number is the assumption, not the data. And note the asymmetry: self-serve barely moves across the same range (1.82x to 1.40x) because its value arrives soon. Long-lived segments carry their value far in the future, where the discount rate does the most work &#8212; so LTV&#8239;:&#8239;CAC is least trustworthy exactly where it is most flattering.</p></div></details></div>
+<div class="qa"><details><summary>6. All four metrics describe last year. Name the question none of them can answer.</summary><div class="ans"><p>What the <em>next</em> dollar does. Every one of the four is an average over spend already committed; every real budget decision is marginal. At Meridian the averages point at self-serve and mid-market, while the marginal figures say self-serve is the worst place to add a dollar (28-month marginal payback) and mid-market the best (11 months).</p></div></details></div>
+<div class="qa"><details><summary>7. State the identity linking Cost of ARR to payback, and explain both adjustments from first principles.</summary><div class="ans"><p><strong>Payback (months) = Cost of ARR &#247; GM&#37; &#215; 12.</strong></p><p><strong>&#247; GM&#37;</strong> &#8212; Cost of ARR is a revenue metric, but revenue does not repay you; only the gross-profit share of it does. <strong>&#215; 12</strong> &#8212; Cost of ARR compares spend to an <em>annual</em> rate, and you collect roughly one twelfth of it per month, so the answer converts to months. Payback is not a separate formula. It is Cost of ARR asked to respect margin and time.</p></div></details></div>
+
+<div class="qa"><details><summary>8. &#8220;0.78x means we paid 78 cents for a dollar of revenue every year from now on.&#8221; What is wrong with that sentence?</summary><div class="ans"><p>The words <em>every year from now on</em>. ARR is a <strong>run rate</strong> &#8212; a snapshot of what today&#8217;s book annualizes to &#8212; not a promise of persistence. Cost of ARR contains no retention term of any kind, so it cannot be making a claim about the future. The defensible sentence is: <em>it cost 78 cents to raise the annualized run-rate by a dollar.</em> How long that dollar lasts is Metric 4&#8217;s question, and it is the reason self-serve at 0.85x looks tolerable here and disastrous at 1.66x there.</p></div></details></div>
+<div class="qa"><details><summary>9. Converting ARR to MRR <em>divides</em> by 12. Converting payback from years to months <em>multiplies</em> by 12. Why do the same twelves pull opposite ways?</summary><div class="ans"><p>They do not &#8212; it is one operation viewed from two sides of the fraction bar. Dividing by (ARR&#8202;&#247;&#8202;12) is identical to multiplying by (12&#8202;&#247;&#8202;ARR); shrink a denominator twelvefold and the quotient grows twelvefold.</p><p>The deeper answer: read ARR as the rate it is &#8212; dollars <em>per year</em> &#8212; and Cost of ARR is already a duration measured in <strong>years</strong> (0.78 years for Meridian). The &#215;12 then does nothing but restate that duration in months, exactly as two hours is 120 minutes. The only step in the payback formula doing economic work is the &#247;&#8202;GM&#37;.</p></div></details></div>
+
+<div class="foot">
+<p><strong>Methodology.</strong> Meridian Systems is a constructed case, engineered so the four metrics disagree; the inputs sit in ranges typical of real B2B SaaS. All figures computed from the seven inputs per segment in Part 1 &#8212; no number is hand-entered. LTV uses the perpetuity-with-churn form (ACV &#215; GM&#37;) &#247; (churn + d) with d = 12%, which prevents the absurd lifetimes that 1&#8202;&#247;&#8202;churn produces at high retention; survival-adjusted payback solves the continuous-decay break-even where monthly gross profit is weighted by GRR^(t&#8202;/&#8202;12). Marginal Cost of ARR figures in Part 4 are stipulated scenario inputs, flagged as such.</p>
+<p style="margin-top:14px"><a href="../index.html">&#8592; Back to all sections</a> Rounding may make the last digit of a derived figure differ by 0.1. The <em>units and periods</em> and <em>where the &#215;12 comes from</em> sections use Meridian&#8217;s company-wide figures so they tie directly to the blended payback of 13.4 months.</p>
+</div>
+</div>
+<script>
+(function(){
+  var btn=document.getElementById('tg');
+  function cur(){var t=document.documentElement.getAttribute('data-theme');
+    if(t)return t;return matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+  function paint(){btn.textContent=cur()==='dark'?'Light mode':'Dark mode';}
+  btn.addEventListener('click',function(){
+    document.documentElement.setAttribute('data-theme',cur()==='dark'?'light':'dark');paint();});
+  paint();
+
+  var S=[{"k": "A", "name": "Self-Serve SMB", "col": "#2a78d6", "c0": -0.85, "m": 0.051666666666666666}, {"k": "B", "name": "Mid-Market", "col": "#eb6834", "c0": -0.8, "m": 0.0675}, {"k": "C", "name": "Enterprise", "col": "#1baf7a", "c0": -0.6989247311827957, "m": 0.055}], L=58, R=690, XMAX=30.0, YMIN=-0.95, YMAX=1.35, TOP=26, BOT=318;
+  var svg=document.getElementById('c1'), box=document.getElementById('c1box'), tip=document.getElementById('c1tip');
+  var cross=document.getElementById('c1cross'), dots=[].slice.call(document.querySelectorAll('#c1 .hv'));
+  function px(m){return L+(m/XMAX)*(R-L);} function py(v){return BOT-((v-YMIN)/(YMAX-YMIN))*(BOT-TOP);}
+  function fmt(v){return (v<0?'-$':'$')+Math.abs(v).toFixed(2);}
+  function move(e){
+    var r=svg.getBoundingClientRect(), vb=svg.viewBox.baseVal, sc=vb.width/r.width;
+    var cx=(e.clientX-r.left)*sc;
+    var mo=Math.max(0,Math.min(XMAX,(cx-L)/(R-L)*XMAX)); mo=Math.round(mo*2)/2;
+    var X=px(mo);
+    cross.setAttribute('x1',X);cross.setAttribute('x2',X);cross.style.opacity=1;
+    var h='<div class="th">Month '+(mo%1?mo.toFixed(1):mo)+'</div>';
+    S.forEach(function(s,i){
+      var v=s.c0+s.m*mo; var Y=py(v);
+      dots[i].setAttribute('cx',X);dots[i].setAttribute('cy',Y);dots[i].style.opacity=1;
+      h+='<div class="tr"><span><span class="dot" style="background:'+s.col+'"></span>'+s.name+'</span><span class="tv">'+fmt(v)+'</span></div>';
+    });
+    tip.innerHTML=h; tip.style.opacity=1;
+    var bw=box.getBoundingClientRect().width, tw=tip.offsetWidth;
+    var lx=(X/vb.width)*bw+16; if(lx+tw>bw) lx=(X/vb.width)*bw-tw-16;
+    tip.style.left=Math.max(0,lx)+'px';
+    tip.style.top=Math.max(0,(e.clientY-box.getBoundingClientRect().top)-tip.offsetHeight-14)+'px';
+  }
+  function out(){tip.style.opacity=0;cross.style.opacity=0;dots.forEach(function(d){d.style.opacity=0;});}
+  svg.addEventListener('mousemove',move); svg.addEventListener('mouseleave',out);
+  svg.addEventListener('touchmove',function(e){if(e.touches[0])move(e.touches[0]);},{passive:true});
+
+  // dumbbell hover
+  var b2=document.getElementById('c2box'), t2=document.getElementById('c2tip');
+  [].slice.call(document.querySelectorAll('#c2 .hit')).forEach(function(g){
+    g.addEventListener('mouseenter',function(){
+      t2.innerHTML='<div class="th">'+g.dataset.name+'</div>'+
+        '<div class="tr"><span>Standard payback</span><span class="tv">'+g.dataset.p+' mo</span></div>'+
+        '<div class="tr"><span>Survival-adjusted</span><span class="tv">'+g.dataset.a+' mo</span></div>'+
+        '<div class="tr"><span>Understated by</span><span class="tv">'+g.dataset.d+'</span></div>';
+      t2.style.opacity=1;
+      var r=b2.getBoundingClientRect(), gr=g.getBoundingClientRect();
+      var lx=gr.left-r.left+gr.width/2-t2.offsetWidth/2;
+      t2.style.left=Math.max(0,Math.min(r.width-t2.offsetWidth,lx))+'px';
+      t2.style.top=(gr.top-r.top-t2.offsetHeight-10)+'px';
+    });
+    g.addEventListener('mouseleave',function(){t2.style.opacity=0;});
+  });
+})();
+</script></body></html>
