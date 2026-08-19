@@ -1,15 +1,15 @@
-# SaaS notes — a permanent study archive
+# SaaS notes: a permanent study archive
 
 A hand-built static site. No framework, no build step, no dependencies, no tracking.
 Every page is a single self-contained HTML file that renders correctly offline, in any
-browser, with no server — and will still do so in ten years.
+browser, with no server, and will still do so in ten years.
 
 ---
 
 ## What's in here
 
 ```
-index.html                      the hub — lists every section, filterable by topic
+index.html                      the hub, lists every section, filterable by topic
 sections/                       one self-contained HTML file per study section
   cac-cost-of-arr-payback-ltv.html
 _template/
@@ -39,12 +39,12 @@ repetition for the guarantee that each piece works forever, on its own.
    joshyoungjae-fpa.github.io
    ```
 
-   That exact name (matching your username) is what puts the site at the root URL. Set it to **Public** —
+   That exact name (matching your username) is what puts the site at the root URL. Set it to **Public**;
    GitHub Pages requires public repos on the free plan.
 
 3. On the empty repository page, click **"uploading an existing file"**.
 
-4. Drag the *contents* of the `site` folder into the browser — `index.html`,
+4. Drag the *contents* of the `site` folder into the browser: `index.html`,
    the `sections` folder, the `_template` folder, `.nojekyll`, and this README.
    Drag the contents, not the `site` folder itself, or every URL gains an extra
    `/site/` in it.
@@ -61,7 +61,7 @@ repetition for the guarantee that each piece works forever, on its own.
    https://joshyoungjae-fpa.github.io
    ```
 
-If you see a 404 at first, give it two or three minutes — the first deploy is the
+If you see a 404 at first, give it two or three minutes. The first deploy is the
 slow one.
 
 ### Custom domain (optional, later)
@@ -84,7 +84,7 @@ the top, right after `<div class="hero">`:
 | `<h1>Working notes on SaaS economics</h1>` | your title for the archive |
 | the two paragraphs below it | your own framing of what this is and why |
 
-Also update `<title>` in the `<head>` — that's what shows in the browser tab and in
+Also update `<title>` in the `<head>`. That's what shows in the browser tab and in
 search results.
 
 ---
@@ -92,15 +92,15 @@ search results.
 ## Adding a new section
 
 1. Copy `_template/section-template.html` into `sections/` and rename it to a
-   descriptive, hyphenated, lowercase filename — for example
+   descriptive, hyphenated, lowercase filename, for example
    `retention-nrr-cohort-survival.html`. **That filename becomes the permanent
    public URL, so choose it once and don't rename it later.** Renaming breaks every
    link anyone has saved.
 
 2. Replace the placeholders: `SECTION TITLE`, `TOPIC`, `NN`, the meta description,
-   and the body content. The template contains one of every available component —
+   and the body content. The template contains one of every available component:
    callouts, formula blocks, stat tiles, strength/weakness pairs, tables, self-test
-   questions — so you can delete what you don't need rather than write markup from
+   questions, so you can delete what you don't need rather than write markup from
    scratch.
 
 3. Add a card for it on the hub. Open `index.html`, find the existing
@@ -108,7 +108,7 @@ search results.
    section number, filename, topic, title, summary, what it demonstrates, the
    concept tags, the date, and the reading time.
 
-   The topic filter needs nothing extra — it reads `data-topic` and
+   The topic filter needs nothing extra; it reads `data-topic` and
    `data-concepts` straight off the cards. But if the new section introduces a
    topic that doesn't exist yet, add a matching chip in the `<div class="filters">`
    row:
@@ -118,7 +118,7 @@ search results.
    ```
 
 4. Upload the changed `index.html` and the new section file to GitHub the same way
-   as before. GitHub will ask whether to replace `index.html` — say yes.
+   as before. GitHub will ask whether to replace `index.html`. Say yes.
 
 ---
 
@@ -128,7 +128,7 @@ Worth keeping consistent, since consistency is most of what makes an archive fee
 like one thing rather than a pile:
 
 - **Series colours are fixed and ordered.** Blue, then orange, then aqua
-  (`--s1`, `--s2`, `--s3`). Assign them in that order and never skip or reorder —
+  (`--s1`, `--s2`, `--s3`). Assign them in that order and never skip or reorder;
   the sequence is chosen so that adjacent pairs stay distinguishable under every
   common form of colour blindness. Never introduce a fourth colour for a fourth
   series; fold it into "Other" or split into two charts.
@@ -138,6 +138,12 @@ like one thing rather than a pile:
   a small coloured dot beside the text carries identity instead.
 - **Every chart needs a table view.** Wrap it in `<details><summary>Table view</summary>`.
   This is what makes the content usable by screen readers and by anyone printing it.
+- **Case companies are Company A, Company B, Company C.** No invented brand names.
+  Descriptive sub-labels (segments, channels, cohorts) keep their real names when the
+  meaning is load-bearing, e.g. "Company A's enterprise segment".
+- **No em dashes anywhere.** Use a colon when a clause explains, a comma when it is
+  parenthetical, brackets for a genuine aside, or a full stop. This applies to prose,
+  headings, chart labels and page titles alike.
 - **Say what is measured, what is assumed, and what is stipulated.** Every section
   ends with a methodology note doing exactly that. It's the habit that makes the
   archive trustworthy.
@@ -159,7 +165,7 @@ in both light and dark mode.
 
 ## Backing it up
 
-GitHub is the backup — every version of every file is kept permanently, and you can
+GitHub is the backup: every version of every file is kept permanently, and you can
 restore any earlier state from the repository's history. For a second copy, click
 **Code → Download ZIP** on the repository page every so often and keep it somewhere
 else.
