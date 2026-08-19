@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gross vs. Net Cash Runway &#8212; SaaS notes</title><meta name="description" content="Two companies with identical cash and identical net runway, one of them months from insolvency. Gross burn, net burn, coverage, trailing-average smoothing, and why cash divided by burn is a snapshot rather than a forecast."><style>
+*{box-sizing:border-box}
+:root{
+  --surface-1:#fcfcfb; --surface-2:#f4f3f0; --surface-3:#eceae5;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7873;
+  --rule:#e2e0da; --grid:#e8e6e1; --axis:#c9c6bf;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --warn-bg:#fdf6e8; --warn-br:#eda100;
+  --good-bg:#eaf6f0; --good-br:#1baf7a;
+  --bad-bg:#fdeeee; --bad-br:#e34948;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){
+  --surface-1:#1a1a19; --surface-2:#222221; --surface-3:#2b2b29;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#94938a;
+  --rule:#35352f; --grid:#2e2e2b; --axis:#4a4a45;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --warn-bg:#2a2415; --warn-br:#c98500;
+  --good-bg:#15241d; --good-br:#199e70;
+  --bad-bg:#2b1717; --bad-br:#e66767;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --surface-1:#1a1a19; --surface-2:#222221; --surface-3:#2b2b29;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#94938a;
+  --rule:#35352f; --grid:#2e2e2b; --axis:#4a4a45;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --warn-bg:#2a2415; --warn-br:#c98500;
+  --good-bg:#15241d; --good-br:#199e70;
+  --bad-bg:#2b1717; --bad-br:#e66767;
+  color-scheme:dark;
+}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--surface-2);color:var(--text-primary);
+  font:16px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  font-variant-numeric:tabular-nums lining-nums;}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px 96px}
+header.top{background:var(--surface-1);border-bottom:1px solid var(--rule);padding:56px 0 40px;margin-bottom:8px}
+header.top .wrap{padding-bottom:0}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin:0 0 14px}
+h1{font-size:40px;line-height:1.12;letter-spacing:-.022em;margin:0 0 16px;font-weight:680}
+.lede{font-size:19px;line-height:1.6;color:var(--text-secondary);margin:0;max-width:70ch}
+h2{font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:650;
+   margin:64px 0 8px;padding-top:28px;border-top:1px solid var(--rule)}
+h3{font-size:27px;line-height:1.22;letter-spacing:-.016em;margin:0 0 18px;font-weight:660}
+h4{font-size:16px;margin:32px 0 10px;font-weight:660;letter-spacing:-.005em}
+p{margin:0 0 16px;max-width:74ch}
+a{color:var(--s1)}
+.mut{color:var(--text-muted)} .sm{font-size:13px} .sec{color:var(--text-secondary)}
+strong{font-weight:660}
+.card{background:var(--surface-1);border:1px solid var(--rule);border-radius:14px;padding:26px 28px;margin:22px 0}
+.flush{padding:26px 8px 20px}
+.card.flush,.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.card.flush::-webkit-scrollbar,.scroll::-webkit-scrollbar{height:8px}
+.card.flush::-webkit-scrollbar-thumb,.scroll::-webkit-scrollbar-thumb{background:var(--axis);border-radius:9px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin:6px 0 4px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);font-weight:640;
+         border-bottom:1px solid var(--axis);white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.seg{white-space:nowrap;font-weight:560}
+td.motion{white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+.win{font-weight:700;position:relative}
+.win::after{content:"";position:absolute;left:6px;right:6px;bottom:4px;height:2px;background:var(--s3);border-radius:2px;opacity:.55}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:baseline;position:relative;top:-1px}
+.dash{display:inline-block;width:14px;height:2px;border-radius:2px;margin-right:8px;vertical-align:middle}
+.callout{border-left:3px solid var(--axis);background:var(--surface-3);border-radius:0 10px 10px 0;padding:16px 20px;margin:22px 0}
+.callout.warn{border-left-color:var(--warn-br);background:var(--warn-bg)}
+.callout.good{border-left-color:var(--good-br);background:var(--good-bg)}
+.callout.bad{border-left-color:var(--bad-br);background:var(--bad-bg)}
+.callout p:last-child{margin-bottom:0}
+.verdict{font-size:18px;line-height:1.5;margin:0}
+.kpi{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
+.tile{flex:1 1 150px;background:var(--surface-1);border:1px solid var(--rule);border-radius:12px;padding:16px 18px}
+.tile .lab{font-size:12px;color:var(--text-muted);margin-bottom:7px;letter-spacing:.02em}
+.tile .val{font-size:29px;font-weight:670;letter-spacing:-.02em;line-height:1.1}
+.tile .sub{font-size:12.5px;color:var(--text-secondary);margin-top:5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0}
+@media(max-width:760px){.two{grid-template-columns:1fr}h1{font-size:31px}h3{font-size:22px}.wrap{padding:0 16px 72px}
+ .card{padding:20px 18px}.flush{padding:18px 4px 14px}.tile{flex:1 1 100%}.eq{font-size:13.5px;padding:14px 15px}
+ .lede{font-size:17px}header.top{padding:38px 0 30px}}
+.sw{border-radius:12px;padding:18px 20px;border:1px solid var(--rule);background:var(--surface-1)}
+.sw h5{margin:0 0 10px;font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-weight:650}
+.sw.s h5{color:var(--good-br)} .sw.w h5{color:var(--warn-br)}
+.sw ul{margin:0;padding-left:18px} .sw li{margin-bottom:8px;font-size:14.5px;line-height:1.55}
+.sw li:last-child{margin-bottom:0}
+figure{margin:22px 0 8px}
+figcaption{font-size:13px;color:var(--text-muted);margin-top:2px;padding:0 4px}
+#c1,#c2{display:block;width:100%;height:auto;overflow:visible}
+.legend svg{display:inline-block;flex:0 0 auto;vertical-align:middle;overflow:visible}
+.axis-t{font-size:11.5px;fill:var(--text-muted)}
+.lbl-t{font-size:12.5px;fill:var(--text-secondary);font-weight:600}
+.lbl-s{font-size:11px;fill:var(--text-muted)}
+details{margin:10px 0 0;border-top:1px solid var(--rule);padding-top:12px}
+details summary{cursor:pointer;font-size:13px;color:var(--text-secondary);font-weight:560;list-style:none;padding:2px 0}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▸ ";color:var(--text-muted)}
+details[open] summary::before{content:"▾ "}
+.qa{background:var(--surface-1);border:1px solid var(--rule);border-radius:12px;padding:4px 20px;margin:12px 0}
+.qa summary{font-size:15.5px;color:var(--text-primary);font-weight:600;padding:14px 0}
+.qa details{border-top:none;padding-top:0}
+.qa .ans{padding:2px 0 16px;color:var(--text-secondary);font-size:15px;border-top:1px solid var(--rule);margin-top:4px;padding-top:14px}
+.qa .ans p{margin-bottom:10px}.qa .ans p:last-child{margin:0}
+.heat{font-weight:600;color:#0b0b0b}
+.eq{background:var(--surface-3);border-radius:10px;padding:16px 20px;margin:18px 0;
+    font:15px/1.75 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-x:auto;color:var(--text-primary)}
+.eq b{font-weight:700}
+.toggle{background:transparent;color:var(--text-secondary);border:1px solid var(--rule);border-radius:999px;
+  padding:6px 14px;font-size:12.5px;cursor:pointer;font-weight:560;font-family:inherit}
+.toggle:hover{color:var(--text-primary);border-color:var(--axis)}
+.sitenav{background:var(--surface-1);border-bottom:1px solid var(--rule)}
+.sitenav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:13px;padding-bottom:13px}
+.sitenav a.back{color:var(--text-secondary);text-decoration:none;font-size:13.5px;font-weight:560;white-space:nowrap}
+.sitenav a.back:hover{color:var(--text-primary)}
+.sitenav .crumb{color:var(--text-muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:560px){.sitenav .crumb{display:none}}
+.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--axis);border-radius:9px;
+  padding:9px 12px;font-size:12.5px;box-shadow:0 6px 20px rgba(0,0,0,.13);opacity:0;transition:opacity .1s;z-index:10;min-width:150px}
+.tip .th{font-weight:670;margin-bottom:6px;font-size:12px;color:var(--text-primary)}
+.tip .tr{display:flex;justify-content:space-between;gap:16px;color:var(--text-secondary);line-height:1.7}
+.tip .tv{font-variant-numeric:tabular-nums;color:var(--text-primary);font-weight:600}
+.chartbox{position:relative}
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin:0 0 4px;padding:0 4px;font-size:13px;color:var(--text-secondary)}
+.legend span{display:inline-flex;align-items:center}
+ol.steps{counter-reset:st;list-style:none;padding:0;margin:20px 0}
+ol.steps li{counter-increment:st;position:relative;padding-left:44px;margin-bottom:18px}
+ol.steps li::before{content:counter(st);position:absolute;left:0;top:1px;width:28px;height:28px;border-radius:50%;
+  background:var(--surface-3);color:var(--text-secondary);font-size:13px;font-weight:670;display:grid;place-items:center}
+ol.steps li strong{display:block;margin-bottom:2px}
+.foot{margin-top:72px;padding-top:24px;border-top:1px solid var(--rule);font-size:13px;color:var(--text-muted)}
+</style></head><body><nav class="sitenav"><div class="wrap"><a class="back" href="../index.html">&#8592; SaaS notes</a><span class="crumb">Cash &amp; runway &#183; Section 02</span><button class="toggle" id="tg">Dark mode</button></div></nav>
+<header class="top"><div class="wrap">
+<p class="eyebrow">Study package &#183; Cash &amp; runway</p>
+<h1>Gross vs. Net Cash Runway</h1>
+<p class="lede">Two founders sat in board meetings the same week and each said, &#8220;we have twelve months of runway.&#8221; Both were telling the truth, and both were using the standard formula correctly. One of them was <strong>2.4 months</strong> from insolvency. This is about the number that would have told them apart.</p>
+</div></header>
+<div class="wrap">
+
+<h2>Part 0</h2>
+<h3>Runway is a division, and the answer is time</h3>
+<div class="eq">Runway = cash in the bank &#247; monthly cash burn &#8194;&#8194;<span class="mut">units: <b>months</b></span></div>
+<p>Dollars divided by dollars-per-month leaves months. That is the whole mechanic, and it is not where anyone gets into trouble.</p>
+<p>The trouble is in <strong>the denominator</strong>. &#8220;Burn&#8221; is not one number. There are two defensible definitions, they can differ by a factor of five, and they answer genuinely different questions. Choosing between them is the entire subject.</p>
+<div class="callout"><p>Every disagreement about runway that you will ever sit through is really a disagreement about the denominator. Establish which burn everyone is quoting before anyone argues about the answer.</p></div>
+
+<h2>Part 1</h2>
+<h3>The two companies</h3>
+<p>Both raised money, both have <strong>$6.0M</strong> in the bank this morning, and both are losing exactly <strong>$500,000 a month</strong>. Beyond that they have almost nothing in common.</p>
+<div class="card flush"><table>
+<thead><tr><th>Company</th><th>Profile</th><th class="n">Cash</th><th class="n">Cash collected / mo</th><th class="n">Cash out / mo</th><th class="n">Net loss / mo</th></tr></thead>
+<tbody><tr><td class="seg"><span class="dot" style="background:var(--s1)"></span>Atlas Systems</td><td class="mut sm">Series C. 180 people. Sells six-figure annual contracts to enterprises.</td><td class="n">$6.0M</td><td class="n">$2,000,000</td><td class="n">$2,500,000</td><td class="n">$500,000</td></tr><tr><td class="seg"><span class="dot" style="background:var(--s3)"></span>Beacon Labs</td><td class="mut sm">Series A. 22 people. Early revenue, mostly living off the raise.</td><td class="n">$6.0M</td><td class="n">$200,000</td><td class="n">$700,000</td><td class="n">$500,000</td></tr></tbody></table></div>
+<p>Atlas is a scaled business: large revenue, larger cost base, and the gap between them happens to be $500,000. Beacon is early: barely any revenue, a small team, and the gap between them also happens to be $500,000.</p>
+<div class="callout warn"><p>Hold onto that. <strong>Identical cash, identical monthly loss.</strong> Every headline number a board deck would show is the same for these two companies. We are about to find a number that isn't.</p></div>
+
+<h2>Burn 1</h2>
+<h3>Gross cash burn &#8212; total cash out the door</h3>
+<div class="eq">Gross cash burn = all cash leaving the business &#8194;&#8194;<span class="mut">revenue is <b>ignored entirely</b></span></div>
+<p>Payroll, rent, hosting, software, contractors, taxes, interest, equipment. Everything. You do not subtract anything you collected, because the question gross burn answers presumes you collect nothing:</p>
+<div class="callout bad"><p class="verdict"><strong>&#8220;If our revenue went to zero tomorrow and we changed nothing, how long do we last?&#8221;</strong></p></div>
+<div class="kpi">
+<div class="tile"><div class="lab"><span class="dot" style="background:var(--s1)"></span>Atlas Systems</div><div class="val">2.4 mo</div><div class="sub">$6.0M &#247; $2,500,000</div></div>
+<div class="tile"><div class="lab"><span class="dot" style="background:var(--s3)"></span>Beacon Labs</div><div class="val">8.6 mo</div><div class="sub">$6.0M &#247; $700,000</div></div>
+</div>
+<p>There it is. <strong>Atlas has 2.4 months of gross runway; Beacon has 8.6</strong> &#8212; 3.6 times longer, from the same bank balance.</p>
+<p>This is not a worst case in the sense of being far-fetched. Revenue does not usually go to zero, but it can fall very fast: a concentration risk realised, a category that stops buying, a compliance failure that pauses new contracts. Gross runway is the floor beneath your business, and Atlas's floor is 2.4 months away.</p>
+
+<h2>Burn 2</h2>
+<h3>Net cash burn &#8212; cash out minus cash in</h3>
+<div class="eq">Net cash burn = cash out &#8722; cash collected &#8194;&#8194;<span class="mut">the number almost everyone quotes</span></div>
+<div class="callout"><p class="verdict"><strong>&#8220;At the rate we are currently losing money, how long do we last?&#8221;</strong></p></div>
+<div class="kpi">
+<div class="tile"><div class="lab"><span class="dot" style="background:var(--s1)"></span>Atlas Systems</div><div class="val">12.0 mo</div><div class="sub">$6.0M &#247; $500,000</div></div>
+<div class="tile"><div class="lab"><span class="dot" style="background:var(--s3)"></span>Beacon Labs</div><div class="val">12.0 mo</div><div class="sub">$6.0M &#247; $500,000</div></div>
+</div>
+<p>Both twelve months. Both correct. Both what the founders told their boards.</p>
+
+<figure><div class="chartbox">
+<div class="legend"><span><span class="dash" style="background:var(--s2)"></span>Gross burn &#8212; revenue ignored</span><span><span class="dash" style="background:var(--s1)"></span>Net burn &#8212; revenue counted</span></div>
+<svg id="r1" viewBox="0 0 860 330" role="img" aria-label="Cash balance depleting under gross versus net burn for Atlas Systems and Beacon Labs"><text x="54" y="186.6" class="axis-t" text-anchor="end">$2M</text><text x="54" y="117.2" class="axis-t" text-anchor="end">$4M</text><text x="54" y="47.9" class="axis-t" text-anchor="end">$6M</text><text x="54" y="256.0" class="axis-t" text-anchor="end">$0</text><text x="64" y="18" class="lbl-t">Atlas Systems</text><line x1="64" y1="182.6" x2="436" y2="182.6" stroke="var(--grid)" stroke-width="1"/><line x1="64" y1="113.2" x2="436" y2="113.2" stroke="var(--grid)" stroke-width="1"/><line x1="64" y1="43.9" x2="436" y2="43.9" stroke="var(--grid)" stroke-width="1"/><line x1="64" y1="252" x2="436" y2="252" stroke="var(--axis)" stroke-width="1"/><line x1="64" y1="30" x2="64" y2="252" stroke="var(--axis)" stroke-width="1"/><line x1="64.0" y1="252" x2="64.0" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="64.0" y="272" class="axis-t" text-anchor="middle">0</text><line x1="149.8" y1="252" x2="149.8" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="149.8" y="272" class="axis-t" text-anchor="middle">3</text><line x1="235.7" y1="252" x2="235.7" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="235.7" y="272" class="axis-t" text-anchor="middle">6</text><line x1="321.5" y1="252" x2="321.5" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="321.5" y="272" class="axis-t" text-anchor="middle">9</text><line x1="407.4" y1="252" x2="407.4" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="407.4" y="272" class="axis-t" text-anchor="middle">12</text><path d="M 64.0 43.9 L 132.7 252.0" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linecap="round"/><circle cx="132.7" cy="252.0" r="5" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><text x="143.7" y="246.0" class="lbl-s" text-anchor="start">2.4 mo</text><path d="M 64.0 43.9 L 407.4 252.0" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linecap="round"/><circle cx="407.4" cy="252.0" r="5" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><text x="393.4" y="271.0" class="lbl-s" text-anchor="end">12.0 mo</text><text x="486" y="18" class="lbl-t">Beacon Labs</text><line x1="486" y1="182.6" x2="858" y2="182.6" stroke="var(--grid)" stroke-width="1"/><line x1="486" y1="113.2" x2="858" y2="113.2" stroke="var(--grid)" stroke-width="1"/><line x1="486" y1="43.9" x2="858" y2="43.9" stroke="var(--grid)" stroke-width="1"/><line x1="486" y1="252" x2="858" y2="252" stroke="var(--axis)" stroke-width="1"/><line x1="486" y1="30" x2="486" y2="252" stroke="var(--axis)" stroke-width="1"/><line x1="486.0" y1="252" x2="486.0" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="486.0" y="272" class="axis-t" text-anchor="middle">0</text><line x1="571.8" y1="252" x2="571.8" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="571.8" y="272" class="axis-t" text-anchor="middle">3</text><line x1="657.7" y1="252" x2="657.7" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="657.7" y="272" class="axis-t" text-anchor="middle">6</text><line x1="743.5" y1="252" x2="743.5" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="743.5" y="272" class="axis-t" text-anchor="middle">9</text><line x1="829.4" y1="252" x2="829.4" y2="257" stroke="var(--axis)" stroke-width="1"/><text x="829.4" y="272" class="axis-t" text-anchor="middle">12</text><path d="M 486.0 43.9 L 731.3 252.0" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linecap="round"/><circle cx="731.3" cy="252.0" r="5" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><text x="742.3" y="246.0" class="lbl-s" text-anchor="start">8.6 mo</text><path d="M 486.0 43.9 L 829.4 252.0" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linecap="round"/><circle cx="829.4" cy="252.0" r="5" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><text x="815.4" y="271.0" class="lbl-s" text-anchor="end">12.0 mo</text><text x="430" y="298" class="axis-t" text-anchor="middle">months from today</text></svg></div>
+<figcaption>Cash balance from today, drawn down at each definition of burn. Same starting balance, same net line in both panels &#8212; and completely different orange lines.</figcaption></figure>
+<details><summary>Table view</summary><div class="scroll"><table>
+<thead><tr><th>Company</th><th class="n">Cash</th><th class="n">Gross burn</th><th class="n">Gross runway</th><th class="n">Net burn</th><th class="n">Net runway</th></tr></thead>
+<tbody><tr><td class="seg">Atlas Systems</td><td class="n">$6.0M</td><td class="n">$2,500,000</td><td class="n">2.40 mo</td><td class="n">$500,000</td><td class="n">12.00 mo</td></tr><tr><td class="seg">Beacon Labs</td><td class="n">$6.0M</td><td class="n">$700,000</td><td class="n">8.57 mo</td><td class="n">$500,000</td><td class="n">12.00 mo</td></tr></tbody></table></div></details>
+
+<h2>Part 2</h2>
+<h3>The bridge: the gap between the two numbers is your revenue dependency</h3>
+<p>These are not two unrelated metrics. One converts into the other through a single quantity &#8212; <strong>coverage</strong>, the share of your cash costs that revenue pays for.</p>
+<div class="eq">Coverage = cash collected &#247; gross cash burn<br>
+Atlas &#8194;$2,000,000 &#247; $2,500,000 = <b>80%</b>&#8194;&#8194;&#8194;Beacon &#8194;$200,000 &#247; $700,000 = <b>28.6%</b></div>
+<p>Net burn is just gross burn with the covered part removed &#8212; net burn = gross burn &#215; (1 &#8722; coverage). Divide cash by each side and the relationship falls out:</p>
+<div class="eq"><b>Net runway = Gross runway &#247; (1 &#8722; coverage)</b><br>
+Atlas &#8194;2.40 &#247; (1 &#8722; 0.80) = <b>12.0 months</b><br>
+Beacon &#8194;8.57 &#247; (1 &#8722; 0.286) = <b>12.0 months</b></div>
+<div class="callout good"><p><strong>The ratio between your two runways is not trivia &#8212; it is a measurement.</strong> Atlas's net runway is 5.0&#215; its gross runway because revenue pays 80% of the bills. Beacon's is only 1.4&#215; because revenue pays 29%. The wider the gap between the two numbers, <em>the more of your survival is rented from customers who could stop paying.</em></p></div>
+<p>Which reframes the whole comparison. Atlas is not the safer company because it has revenue. Atlas is the <em>more leveraged</em> company, because it has built a cost base that only stands up while the revenue keeps arriving.</p>
+
+<h2>Part 3</h2>
+<h3>Net runway is a leveraged number</h3>
+<p>Coverage does not only set the gap between the two runways. It also determines how violently net runway moves when revenue moves &#8212; and the relationship is sharper than intuition suggests.</p>
+<div class="eq">Sensitivity of net runway to revenue = cash collected &#247; net burn<br>
+Atlas &#8194;$2,000,000 &#247; $500,000 = <b>4.0&#215;</b>&#8194;&#8194;&#8194;Beacon &#8194;$200,000 &#247; $500,000 = <b>0.4&#215;</b></div>
+<p>A one percent change in Atlas's revenue moves its runway about <strong>four percent</strong>. The same one percent moves Beacon's by <strong>four tenths of a percent</strong>. Ten times the exposure, from a metric that reported the identical twelve months.</p>
+<figure><div class="chartbox">
+<div class="legend"><span><span class="dash" style="background:var(--s1)"></span>Atlas Systems</span><span><span class="dash" style="background:var(--s3)"></span>Beacon Labs</span></div>
+<svg id="r2" viewBox="0 0 860 360" role="img" aria-label="Net cash runway against a change in monthly revenue, for both companies"><line x1="66" y1="252.5" x2="700" y2="252.5" stroke="var(--grid)" stroke-width="1"/><text x="56" y="256.5" class="axis-t" text-anchor="end">10</text><line x1="66" y1="208.9" x2="700" y2="208.9" stroke="var(--grid)" stroke-width="1"/><text x="56" y="212.9" class="axis-t" text-anchor="end">20</text><line x1="66" y1="165.4" x2="700" y2="165.4" stroke="var(--grid)" stroke-width="1"/><text x="56" y="169.4" class="axis-t" text-anchor="end">30</text><line x1="66" y1="121.8" x2="700" y2="121.8" stroke="var(--grid)" stroke-width="1"/><text x="56" y="125.8" class="axis-t" text-anchor="end">40</text><line x1="66" y1="78.3" x2="700" y2="78.3" stroke="var(--grid)" stroke-width="1"/><text x="56" y="82.3" class="axis-t" text-anchor="end">50</text><line x1="66" y1="34.7" x2="700" y2="34.7" stroke="var(--grid)" stroke-width="1"/><text x="56" y="38.7" class="axis-t" text-anchor="end">60</text><line x1="66" y1="296" x2="700" y2="296" stroke="var(--axis)" stroke-width="1"/><line x1="66" y1="26" x2="66" y2="296" stroke="var(--axis)" stroke-width="1"/><line x1="488.7" y1="26" x2="488.7" y2="296" stroke="var(--axis)" stroke-width="1" stroke-opacity=".55"/><text x="488.7" y="18" class="lbl-s" text-anchor="middle">today</text><text x="66.0" y="316" class="axis-t" text-anchor="middle">-40%</text><text x="171.7" y="316" class="axis-t" text-anchor="middle">-30%</text><text x="277.3" y="316" class="axis-t" text-anchor="middle">-20%</text><text x="383.0" y="316" class="axis-t" text-anchor="middle">-10%</text><text x="488.7" y="316" class="axis-t" text-anchor="middle">+0%</text><text x="594.3" y="316" class="axis-t" text-anchor="middle">+10%</text><text x="700.0" y="316" class="axis-t" text-anchor="middle">+20%</text><text x="383" y="340" class="axis-t" text-anchor="middle">change in monthly cash revenue</text><text x="20" y="161" class="axis-t" text-anchor="middle" transform="rotate(-90 20 161)">net runway (months)</text><path d="M 66.0 275.9 L 171.7 272.2 L 277.3 267.0 L 383.0 258.7 L 488.7 243.7 L 594.3 208.9 L 700.0 34.7" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/><circle cx="66.0" cy="275.9" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="171.7" cy="272.2" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="277.3" cy="267.0" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="383.0" cy="258.7" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="488.7" cy="243.7" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="594.3" cy="208.9" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="700.0" cy="34.7" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><text x="712.0" y="38.7" class="lbl-t">Atlas</text><path d="M 66.0 250.9 L 171.7 249.3 L 277.3 247.6 L 383.0 245.8 L 488.7 243.7 L 594.3 241.6 L 700.0 239.2" fill="none" stroke="var(--s3)" stroke-width="2" stroke-linejoin="round"/><circle cx="66.0" cy="250.9" r="4" fill="var(--s3)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="171.7" cy="249.3" r="4" fill="var(--s3)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="277.3" cy="247.6" r="4" fill="var(--s3)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="383.0" cy="245.8" r="4" fill="var(--s3)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="488.7" cy="243.7" r="4" fill="var(--s3)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="594.3" cy="241.6" r="4" fill="var(--s3)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="700.0" cy="239.2" r="4" fill="var(--s3)" stroke="var(--surface-1)" stroke-width="2"/><text x="712.0" y="243.2" class="lbl-t">Beacon</text></svg></div>
+<figcaption>Net runway against a permanent change in monthly cash revenue. Costs unchanged in both cases. The curve is a hyperbola, not a line &#8212; which is why the downside is so much worse than it feels.</figcaption></figure>
+<div class="card flush"><table>
+<thead><tr><th>Net runway (months)</th><th class="n">-40%</th><th class="n">-30%</th><th class="n">-20%</th><th class="n">-10%</th><th class="n">+0%</th><th class="n">+10%</th><th class="n">+20%</th><th class="n">Range</th></tr></thead>
+<tbody><tr><td class="seg"><span class="dot" style="background:var(--s1)"></span>Atlas</td><td class="n">4.6</td><td class="n">5.5</td><td class="n">6.7</td><td class="n">8.6</td><td class="n win">12.0</td><td class="n">20.0</td><td class="n">60.0</td><td class="n mut">13.0&#215;</td></tr><tr><td class="seg"><span class="dot" style="background:var(--s3)"></span>Beacon</td><td class="n">10.3</td><td class="n">10.7</td><td class="n">11.1</td><td class="n">11.5</td><td class="n win">12.0</td><td class="n">12.5</td><td class="n">13.0</td><td class="n mut">1.3&#215;</td></tr></tbody></table></div>
+<div class="callout bad"><p><strong>Six months later, the market cools and both companies lose 20% of revenue.</strong> Neither cuts costs yet. Atlas's runway falls from 12.0 months to <strong>6.7</strong>. Beacon's falls from 12.0 to <strong>11.1</strong>. The same shock, applied to two companies that reported identical runway, costs one of them 5.3 months and the other 0.9.</p></div>
+<p>Note the shape of that sensitivity curve on the upside too. At +20% revenue Atlas shows <strong>60 months</strong> of runway. Nothing about the business became five times safer &#8212; the denominator merely got close to zero, and dividing by nearly nothing produces nearly anything. <strong>Net runway becomes meaningless as you approach breakeven</strong>, in both directions, and that is precisely the moment people quote it most confidently.</p>
+
+<h2>Part 4</h2>
+<h3>One month's burn is noise</h3>
+<p>Everything above used a single month's burn. Here is Atlas's actual trailing year &#8212; the twelve months that ended with the $6.0M and the $500,000 we started from.</p>
+<figure><div class="chartbox">
+<div class="legend"><span><span class="dash" style="background:var(--s2)"></span>Point-in-time (this month's burn)</span><span><span class="dash" style="background:var(--s1)"></span>Trailing 3-month average</span></div>
+<svg id="r3" viewBox="0 0 860 330" role="img" aria-label="Point-in-time net runway compared with trailing three month net runway across twelve months"><line x1="64" y1="224.3" x2="700" y2="224.3" stroke="var(--grid)" stroke-width="1"/><text x="54" y="228.3" class="axis-t" text-anchor="end">6</text><line x1="64" y1="184.7" x2="700" y2="184.7" stroke="var(--grid)" stroke-width="1"/><text x="54" y="188.7" class="axis-t" text-anchor="end">12</text><line x1="64" y1="145.0" x2="700" y2="145.0" stroke="var(--grid)" stroke-width="1"/><text x="54" y="149.0" class="axis-t" text-anchor="end">18</text><line x1="64" y1="105.3" x2="700" y2="105.3" stroke="var(--grid)" stroke-width="1"/><text x="54" y="109.3" class="axis-t" text-anchor="end">24</text><line x1="64" y1="65.7" x2="700" y2="65.7" stroke="var(--grid)" stroke-width="1"/><text x="54" y="69.7" class="axis-t" text-anchor="end">30</text><line x1="64" y1="26.0" x2="700" y2="26.0" stroke="var(--grid)" stroke-width="1"/><text x="54" y="30.0" class="axis-t" text-anchor="end">36</text><line x1="64" y1="264" x2="700" y2="264" stroke="var(--axis)" stroke-width="1"/><line x1="64" y1="26" x2="64" y2="264" stroke="var(--axis)" stroke-width="1"/><text x="64.0" y="284" class="axis-t" text-anchor="middle">M1</text><text x="121.8" y="284" class="axis-t" text-anchor="middle">M2</text><text x="179.6" y="284" class="axis-t" text-anchor="middle">M3</text><line x1="179.6" y1="26" x2="179.6" y2="264" stroke="var(--axis)" stroke-width="1" stroke-opacity=".35"/><text x="237.5" y="284" class="axis-t" text-anchor="middle">M4</text><text x="295.3" y="284" class="axis-t" text-anchor="middle">M5</text><text x="353.1" y="284" class="axis-t" text-anchor="middle">M6</text><line x1="353.1" y1="26" x2="353.1" y2="264" stroke="var(--axis)" stroke-width="1" stroke-opacity=".35"/><text x="410.9" y="284" class="axis-t" text-anchor="middle">M7</text><text x="468.7" y="284" class="axis-t" text-anchor="middle">M8</text><text x="526.5" y="284" class="axis-t" text-anchor="middle">M9</text><line x1="526.5" y1="26" x2="526.5" y2="264" stroke="var(--axis)" stroke-width="1" stroke-opacity=".35"/><text x="584.4" y="284" class="axis-t" text-anchor="middle">M10</text><text x="642.2" y="284" class="axis-t" text-anchor="middle">M11</text><line x1="642.2" y1="26" x2="642.2" y2="264" stroke="var(--axis)" stroke-width="1" stroke-opacity=".35"/><text x="700.0" y="284" class="axis-t" text-anchor="middle">M12</text><path d="M 64.0 33.5 L 121.8 102.2 L 179.6 181.1 L 237.5 80.5 L 295.3 113.9 L 353.1 203.9 L 410.9 85.1 L 468.7 137.4 L 526.5 223.0 L 584.4 139.2 L 642.2 214.0 L 700.0 184.7" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round"/><circle cx="64.0" cy="33.5" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="121.8" cy="102.2" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="179.6" cy="181.1" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="237.5" cy="80.5" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="295.3" cy="113.9" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="353.1" cy="203.9" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="410.9" cy="85.1" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="468.7" cy="137.4" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="526.5" cy="223.0" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="584.4" cy="139.2" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="642.2" cy="214.0" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="700.0" cy="184.7" r="4" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/><path d="M 64.0 33.5 L 121.8 77.0 L 179.6 136.9 L 237.5 143.3 L 295.3 145.9 L 353.1 165.1 L 410.9 165.7 L 468.7 170.1 L 526.5 189.7 L 584.4 194.8 L 642.2 212.4 L 700.0 196.0" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/><circle cx="64.0" cy="33.5" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="121.8" cy="77.0" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="179.6" cy="136.9" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="237.5" cy="143.3" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="295.3" cy="145.9" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="353.1" cy="165.1" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="410.9" cy="165.7" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="468.7" cy="170.1" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="526.5" cy="189.7" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="584.4" cy="194.8" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="642.2" cy="212.4" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><circle cx="700.0" cy="196.0" r="4" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/><text x="526.5" y="245.0" class="lbl-s" text-anchor="middle">6.2 mo</text><text x="584.4" y="127.2" class="lbl-s" text-anchor="middle">18.9 mo</text><text x="382" y="308" class="axis-t" text-anchor="middle">Atlas Systems, trailing twelve months</text></svg></div>
+<figcaption>Net runway computed two ways from the same cash balances. Vertical rules mark months with a large annual payment.</figcaption></figure>
+<div class="callout bad"><p>In <strong>M9</strong> Atlas paid annual bonuses. Runway that month reads <strong>6.2 months</strong> &#8212; an emergency. In <strong>M10</strong> it reads <strong>18.9 months</strong> &#8212; comfortable. Nothing about the business changed between those two mornings. <em>Neither number was ever true.</em></p></div>
+<p>Across the year the point-in-time figure ranged from 6.2 to 27.8 months &#8212; a 4.5&#215; spread. The trailing three-month version ranged 7.8 to 19.2, a 2.5&#215; spread. Same company, same bank statements; one series is readable and the other is an alarm that goes off at random.</p>
+<div class="card flush"><table>
+<thead><tr><th>Month</th><th class="n">Cash out</th><th class="n">Collected</th><th class="n">Net burn</th><th class="n">Cash left</th><th class="n">Runway (this month)</th><th class="n">Runway (T3M)</th><th>What happened</th></tr></thead>
+<tbody><tr><td class="seg">M1</td><td class="n">$2,380k</td><td class="n">$2,000k</td><td class="n">$380k</td><td class="n">$13,250k</td><td class="n">34.9</td><td class="n">34.9</td><td class="mut sm"></td></tr><tr><td class="seg">M2</td><td class="n">$2,420k</td><td class="n">$1,900k</td><td class="n">$520k</td><td class="n">$12,730k</td><td class="n">24.5</td><td class="n">28.3</td><td class="mut sm"></td></tr><tr><td class="seg">M3</td><td class="n">$2,900k</td><td class="n">$1,960k</td><td class="n">$940k</td><td class="n">$11,790k</td><td class="n">12.5</td><td class="n">19.2</td><td class="mut sm">D&amp;O insurance + SOC 2 audit</td></tr><tr><td class="seg">M4</td><td class="n">$2,410k</td><td class="n">$2,000k</td><td class="n">$410k</td><td class="n">$11,380k</td><td class="n">27.8</td><td class="n">18.3</td><td class="mut sm"></td></tr><tr><td class="seg">M5</td><td class="n">$2,440k</td><td class="n">$1,960k</td><td class="n">$480k</td><td class="n">$10,900k</td><td class="n">22.7</td><td class="n">17.9</td><td class="mut sm"></td></tr><tr><td class="seg">M6</td><td class="n">$3,130k</td><td class="n">$2,050k</td><td class="n">$1,080k</td><td class="n">$9,820k</td><td class="n">9.1</td><td class="n">15.0</td><td class="mut sm">annual user conference</td></tr><tr><td class="seg">M7</td><td class="n">$2,400k</td><td class="n">$2,050k</td><td class="n">$350k</td><td class="n">$9,470k</td><td class="n">27.1</td><td class="n">14.9</td><td class="mut sm"></td></tr><tr><td class="seg">M8</td><td class="n">$2,450k</td><td class="n">$1,980k</td><td class="n">$470k</td><td class="n">$9,000k</td><td class="n">19.1</td><td class="n">14.2</td><td class="mut sm"></td></tr><tr><td class="seg">M9</td><td class="n">$3,300k</td><td class="n">$2,050k</td><td class="n">$1,250k</td><td class="n">$7,750k</td><td class="n" style=font-weight:700>6.2</td><td class="n">11.2</td><td class="mut sm">annual bonus payout</td></tr><tr><td class="seg">M10</td><td class="n">$2,420k</td><td class="n">$2,030k</td><td class="n">$390k</td><td class="n">$7,360k</td><td class="n" style=font-weight:700>18.9</td><td class="n">10.5</td><td class="mut sm"></td></tr><tr><td class="seg">M11</td><td class="n">$2,900k</td><td class="n">$2,040k</td><td class="n">$860k</td><td class="n">$6,500k</td><td class="n">7.6</td><td class="n">7.8</td><td class="mut sm">annual software renewals</td></tr><tr><td class="seg">M12</td><td class="n">$2,500k</td><td class="n">$2,000k</td><td class="n">$500k</td><td class="n">$6,000k</td><td class="n">12.0</td><td class="n">10.3</td><td class="mut sm"></td></tr></tbody></table></div>
+<p>Use the trailing three-month average as the default reported figure. But know what smoothing costs you: <strong>it lags.</strong> A genuine step-change in burn &#8212; a layoff, a new office, a large customer lost &#8212; takes three months to show up fully, and during those three months the smoothed number is knowingly wrong. Smoothing suppresses noise and signal alike.</p>
+<div class="callout"><p>The working rule: <strong>report the trailing three-month figure, and investigate the point-in-time figure.</strong> One is for the board deck; the other is for you, as a prompt to go and find out what was unusual about the month.</p></div>
+
+<h2>Part 5</h2>
+<h3>What both numbers get wrong: burn is not flat</h3>
+<p>Every figure so far divides by <em>this month's</em> burn, which quietly assumes burn stays there forever. It never does. Run each company forward against a plausible plan instead of a frozen one:</p>
+<div class="two">
+<div class="sw s"><h5>Atlas &#8212; static number is too pessimistic</h5>
+<ul><li>Revenue growing 4% a month, costs 2%.</li>
+<li>Static net runway says <strong>12.0 months</strong>.</li>
+<li>Actually: cash bottoms out at <strong>$2,521k</strong> around month 12, then climbs. Atlas <strong>never runs out</strong>.</li>
+<li>Managing to the static number here means raising money you did not need, at a valuation you did not have to accept.</li></ul></div>
+<div class="sw w"><h5>Beacon &#8212; static number is too optimistic</h5>
+<ul><li>Revenue flat, costs growing 3% a month with hiring.</li>
+<li>Static net runway says <strong>12.0 months</strong>.</li>
+<li>Actually out of cash in <strong>10 months</strong>.</li>
+<li>Managing to the static number here means discovering the shortfall two months after the point where you still had options.</li></ul></div>
+</div>
+<div class="callout warn"><p><strong>The same formula, applied correctly to two companies, is wrong in opposite directions.</strong> Cash &#247; burn is a <em>snapshot</em>, not a forecast. It answers &#8220;how long at exactly today's rate,&#8221; and today's rate is the one thing you can be confident will not persist. Any runway number that matters &#8212; the one that decides when you start fundraising &#8212; has to come from a month-by-month cash projection with your actual hiring plan and your actual collections in it.</p></div>
+
+<h2>Part 6</h2>
+<h3>Four traps in the mechanics</h3>
+<ol class="steps">
+<li><strong>It is cash, not accrual.</strong> The revenue term is cash <em>collected</em>, not revenue booked. A company invoicing $2,000,000 a month on 90-day terms is not collecting $2,000,000 a month. Build net burn from the bank statement, never from the P&amp;L, or you will report a runway you do not have.</li>
+<li><strong>Gross burn means all of it.</strong> Not just operating expenses &#8212; capital expenditure, debt service, tax payments, legal settlements, earn-outs. Computing gross burn from the opex line is the most common error in this whole area, and it always errs toward flattering you.</li>
+<li><strong>Positive net burn breaks the formula.</strong> A month where a customer prepays a year can close cash-positive. Cash &#247; a negative burn yields a negative runway, which is not a number. Guard it explicitly: if net burn &#8804; 0, the answer is &#8220;cash generative this month&#8221; and you fall back to the trailing average.</li>
+<li><strong>Pick a sign convention and label it.</strong> Some models store burn as a negative and divide by &#8722;burn; others store it positive. Both are fine and neither is worth arguing about &#8212; but two tabs of one model using different conventions is how a runway gets reported at the wrong sign in a board pack. Put the convention in the row label.</li>
+</ol>
+
+<h2>Part 7</h2>
+<h3>Which number answers which question</h3>
+<div class="card flush"><table>
+<thead><tr><th>The question in the room</th><th>The number</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>How long at our current loss rate?</td><td class="seg"><strong>Net runway</strong></td><td class="sm sec">Its literal definition; use the T3M version</td></tr>
+<tr><td>What if our biggest customer leaves?</td><td class="seg"><strong>Gross runway</strong></td><td class="sm sec">The only one that survives revenue going away</td></tr>
+<tr><td>How exposed are we to a downturn?</td><td class="seg"><strong>The gap between them</strong></td><td class="sm sec">Net &#247; gross = 1 &#247; (1 &#8722; coverage) &#8212; your revenue dependency</td></tr>
+<tr><td>How much will one bad quarter cost us?</td><td class="seg"><strong>Revenue &#247; net burn</strong></td><td class="sm sec">The sensitivity multiple &#8212; 4&#215; for Atlas, 0.4&#215; for Beacon</td></tr>
+<tr><td>Is this month's spike real?</td><td class="seg"><strong>Both, compared</strong></td><td class="sm sec">A gap between point-in-time and T3M <em>is</em> the anomaly signal</td></tr>
+<tr><td>When do we start fundraising?</td><td class="seg"><strong>The projection</strong></td><td class="sm sec">Neither static number; and start while you still have 6+ months</td></tr>
+<tr><td>What is our runway, really?</td><td class="seg"><strong>Neither alone</strong></td><td class="sm sec">A month-by-month cash forecast with the real hiring plan in it</td></tr>
+</tbody></table></div>
+<div class="callout"><p><strong>The habit worth building:</strong> never quote a runway without saying which burn it came from and over what window. &#8220;Twelve months&#8221; is not information. &#8220;Twelve months on trailing-three-month net burn, 2.4 months gross&#8221; is a complete sentence, and it is the one that would have distinguished Atlas from Beacon in that board meeting.</p></div>
+
+<h2>Part 8</h2>
+<h3>Check yourself</h3>
+<div class="qa"><details><summary>1. Two companies report identical cash and identical net runway. What single number tells you which is more fragile?</summary><div class="ans"><p>Gross runway &#8212; or equivalently, coverage. Atlas and Beacon both showed $6.0M and 12 months, but Atlas's gross runway is 2.4 months against Beacon's 8.6, because revenue pays 80% of Atlas's costs and only 29% of Beacon's. The company with more revenue is the more fragile one, which is the opposite of most people's first instinct.</p></div></details></div>
+<div class="qa"><details><summary>2. Atlas loses 20% of revenue. Why does runway fall by so much more than 20%?</summary><div class="ans"><p>Because revenue is subtracted in the denominator, not the numerator. Cash out stays at $2,500,000; collections fall from $2,000,000 to $1,600,000; net burn therefore rises from $500,000 to $900,000 &#8212; an +80% jump in the denominator from a -20% move in revenue. Runway goes 12.0 &#8594; 6.7 months. The multiplier is revenue &#247; net burn = 4&#215;.</p></div></details></div>
+<div class="qa"><details><summary>3. M9 showed 6.2 months of runway and M10 showed 18.9. What happened, and which was right?</summary><div class="ans"><p>Annual bonuses were paid in M9, pushing cash out to $3,300k against a normal $2,500k. Neither number was right. Both divided a real cash balance by an unrepresentative month. The trailing three-month readings for those months (11.2 and 10.5) are the defensible ones &#8212; and the divergence between the two series is itself the useful signal that something non-recurring landed.</p></div></details></div>
+<div class="qa"><details><summary>4. The static formula said both companies had 12 months. Atlas never runs out; Beacon dies at 10. What assumption failed?</summary><div class="ans"><p>That burn stays flat. Atlas's revenue compounds faster than its costs, so its net burn shrinks toward zero and reverses. Beacon's costs compound against flat revenue, so its net burn grows. Cash &#247; burn freezes today's rate and projects it forever &#8212; it is a snapshot wearing the costume of a forecast, and it errs in whichever direction your business is actually moving.</p></div></details></div>
+<div class="qa"><details><summary>5. Your controller computes gross burn from total operating expenses. What is missing, and which way does the error run?</summary><div class="ans"><p>Everything below the opex line that still leaves the bank: capital expenditure, debt principal and interest, tax payments, settlements, earn-outs. It also silently includes non-cash charges like depreciation and stock compensation, which never leave the bank at all. Both errors flatter you &#8212; understating burn and overstating runway. Gross burn should be reconciled to the actual change in the bank balance, not derived from the income statement.</p></div></details></div>
+<div class="qa"><details><summary>6. A customer prepays a full year and the month closes cash-positive. What is that month's net runway?</summary><div class="ans"><p>Undefined. Net burn is negative, and cash &#247; a negative number is not a duration. The correct output is &#8220;cash generative this month&#8221; plus the trailing three-month figure. Reporting a large or negative runway from a single prepayment month is one of the easier ways to mislead a board without meaning to.</p></div></details></div>
+<div class="qa"><details><summary>7. State the identity linking gross runway, net runway and coverage &#8212; and say what the gap between the runways measures.</summary><div class="ans"><p><strong>Net runway = Gross runway &#247; (1 &#8722; coverage)</strong>, where coverage = cash collected &#247; gross cash burn.</p><p>The gap measures <strong>revenue dependency</strong>. A company whose net runway is barely longer than its gross runway funds itself mostly from the bank and would hardly notice revenue stopping. A company whose net runway is many times its gross runway is being held up by its customers, and the multiple is exactly how much of the load they carry.</p></div></details></div>
+
+<div class="foot">
+<p><strong>Methodology.</strong> Atlas Systems and Beacon Labs are constructed cases, built so that cash, net burn and net runway are identical while coverage differs sharply; the figures sit in ranges typical of a Series C and a Series A software company. All runway figures are computed from the cash and burn inputs shown &#8212; nothing is hand-entered. The trailing-twelve-month history is stipulated, with month 12 tied to the headline figures used throughout. Projections in Part 5 apply constant monthly growth rates to revenue and cost and are illustrative of direction, not forecasts. All revenue figures mean cash collected, not revenue recognised.</p>
+<p style="margin-top:14px"><a href="../index.html">&#8592; Back to all sections</a></p></div>
+</div>
+<script>
+(function(){
+  var btn=document.getElementById('tg');
+  function cur(){var t=document.documentElement.getAttribute('data-theme');
+    if(t)return t;return matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+  function paint(){btn.textContent=cur()==='dark'?'Light mode':'Dark mode';}
+  btn.addEventListener('click',function(){
+    document.documentElement.setAttribute('data-theme',cur()==='dark'?'light':'dark');paint();});
+  paint()
+})();</script></body></html>
